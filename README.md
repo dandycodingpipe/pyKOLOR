@@ -9,6 +9,8 @@ K-edge imaging has been increasingly explored in animal models to understand how
 5. Thesis report and publication
 
 # Timeline
+  ## February
+  A substantial amount of bibliography and work on building a SPCCT oriented visualization and image processing package for my work.
   ## March
   End of march all segmentations and biodistribution calculations should have been performed.
   ## April-May
