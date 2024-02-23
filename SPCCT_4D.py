@@ -31,8 +31,7 @@ class Sample:
         
         for t, acquisitions in enumerate(directories):
             self.add_timepoint(base_path, directories, t)
- 
-    
+
     def add_timepoint(self, base_path, directories, t):
         """
         Take all the timepoints that fetch_data() identifies in order to create
@@ -81,6 +80,7 @@ class Sample:
              
         #Instantiate a timepoint class object and append it to the acquisition array
         self.acquisition.append(Timepoint(t, conventional, kedge))
+    #def import masks from 3d slicer
 
 def rescale_image(medical_image, image):
     """
@@ -109,7 +109,6 @@ def redefine_window(image):
     
     return window_image
 
-
 # add ROI
 # store measurements in a dictionary
 # calculate functional information based on ROI
@@ -120,3 +119,6 @@ class Timepoint:
         self.conventional = conventional # 3D array of conventional images
         self.kedge = kedge # 3D array of kedge images
 
+
+#class Visualize:
+#    def __init__(self, sample):
