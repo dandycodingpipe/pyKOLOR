@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-def rawCopyLoader(rabbit, kedge):
+def load3dStack(rabbit, kedge):
     """
     Interactively load DICOM files from the project hardrive into a 3D numpy array.
     """
