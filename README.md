@@ -13,6 +13,7 @@ K-edge imaging has been increasingly explored in animal models to understand how
   ## February
   A substantial amount of bibliography and work on building a SPCCT oriented visualization and image processing package for my work.
   ## March
+  A publication on Nh-auguerix performance should be made.
   End of march all segmentations and biodistribution calculations should have been performed.
   ## April-May
   Correlative studies and perfusion imaging will be performed and finalized
