@@ -60,7 +60,7 @@ class Sample:
                         print("No DICOM files found in the specified path.")
                         return None
 
-            print(f"File {t} total DICOM files found: {len(DCMFiles)}")
+            print(f"{suffix} file {t+1} total DICOM files found: {len(DCMFiles)}")
 
             images = [pydicom.dcmread(f) for f in DCMFiles]
             images.sort(key=lambda x: float(x.ImagePositionPatient[2]))
