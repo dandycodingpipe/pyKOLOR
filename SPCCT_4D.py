@@ -2,6 +2,7 @@ import pydicom
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button
 
 class Sample:
     """
@@ -120,5 +121,65 @@ class Timepoint:
         self.kedge = kedge # 3D array of kedge images
 
 
-#class Visualize:
-#    def __init__(self, sample):
+class Viewer:
+    """
+    A Viewer class for interactive visualization in Jupyter notebooks using %matplotlib widget.
+    
+    Usage requires:
+    - %matplotlib widget to be called in the notebook.
+    - matplotlib and ipympl to be installed.
+    """
+    def __init__(self, sample):
+        self.sample = sample
+        self.init_time_point = 0
+        self.init_slice_index = 50
+        self.image_type = 'kedge'  # Toggle between 'kedge' and 'conventional'
+
+        self.fig, self.ax = plt.subplots(figsize=(10, 10))
+        plt.subplots_adjust(left=0.25, bottom=0.3)
+        self.ax.axis('off')  # Hide the axis for a cleaner look
+
+        # Display the initial image
+        self.image_display = self.ax.imshow(self.get_image(self.init_time_point, self.init_slice_index), cmap='gray')
+
+        # Time point slider
+        ax_time = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor='lightgray')
+        self.time_slider = Slider(ax_time, 'Time Point', 0, len(self.sample.acquisition)-1, valinit=self.init_time_point, valstep=1)
+
+        # Slice index slider
+        ax_slice = plt.axes([0.05, 0.25, 0.0225, 0.63], facecolor='lightgray')
+        self.slice_slider = Slider(ax_slice, 'Slice Index', 0, self.get_slice_max(), valinit=self.init_slice_index, valstep=1, orientation='vertical')
+
+        # View switch button
+        ax_button = plt.axes([0.4, 0.025, 0.2, 0.075])
+        self.button = Button(ax_button, 'Switch View', color='lightblue', hovercolor='0.975')
+
+        # Set up event handlers
+        self.time_slider.on_changed(self.update)
+        self.slice_slider.on_changed(self.update)
+        self.button.on_clicked(self.switch_image_type)
+
+        plt.show()
+
+    def get_image(self, time_point, slice_index):
+        """Retrieve the image for the given time point and slice index."""
+        return getattr(self.sample.acquisition[time_point], self.image_type)[:, :, slice_index]
+
+    def get_slice_max(self):
+        """Get the maximum slice index for the current image type and time point."""
+        return getattr(self.sample.acquisition[0], self.image_type).shape[2] - 1
+
+    def update(self, val):
+        """Update the displayed image based on slider values."""
+        time_point = int(self.time_slider.val)
+        slice_index = int(self.slice_slider.val)
+        new_image = self.get_image(time_point, slice_index)
+        self.image_display.set_data(new_image)
+        self.image_display.set_clim(vmin=new_image.min(), vmax=new_image.max())  # Adjust display range dynamically
+        self.fig.canvas.draw_idle()
+
+    def switch_image_type(self, event):
+        """Switch between 'kedge' and 'conventional' image types."""
+        self.image_type = 'conventional' if self.image_type == 'kedge' else 'kedge'
+        self.slice_slider.valmax = self.get_slice_max()  # Adjust the max slice index for the new image type
+        self.update(None)  # Update the display to reflect the change
