@@ -2,7 +2,11 @@ import pydicom
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button
+from matplotlib.widgets import Slider, Button, LassoSelector
+from matplotlib.path import Path
+from skimage.morphology import binary_dilation, disk
+import pandas as pd
+import re
 
 class Sample:
     """
@@ -110,26 +114,21 @@ def redefine_window(image):
     
     return window_image
 
-# add ROI
-# store measurements in a dictionary
-# calculate functional information based on ROI
-
 class Timepoint:
     def __init__(self, time, conventional, kedge):
         self.time = time #identifier
         self.conventional = conventional # 3D array of conventional images
         self.kedge = kedge # 3D array of kedge images
 
-
 class Viewer:
     """
     A viewer class that allows the user to visualize both K-edge and Conventional images in one tool. It allows switching between planes and it is initialized in the correct HU units upons initializations but
     be mindful that when adjusting WL and WW this information is lost.
     """
-    def __init__(self, sample):
+    def __init__(self, sample, init_slice_index = 50):
         self.sample = sample
         self.init_time_point = 0
-        self.init_slice_index = 50
+        self.init_slice_index = init_slice_index
         self.image_type = 'conventional'  # Initial image type
         self.init_WL = 40
         self.init_WW = 400
@@ -245,3 +244,153 @@ class Viewer:
     def display(self):
         """Display or redisplay the viewer figure."""
         self.fig.show()
+
+class vesselDiameter:
+    """
+    This class seeks to extend to simple Viewer class by adding vessel diameter measuring functionalities. A user can manually segment a vessel of interest and generate information aout its signal, noise, and CNR in conventional and Kedge. Optionally, previously created masks can be reloaded for quality assessment instead.
+    """
+    def __init__(self, sample, path = None):
+        self.sample = sample
+        self.path = path
+        self.data = pd.DataFrame(columns=["Signal_HU", "Noise_HU", "CNR_HU", "Signal_Kedge", "Noise_Kedge", "CNR_Kedge"])
+        self.masks = []
+        self.mask_overlay = None
+
+        #if the user gives a mask, just load it instead of doing the lassos stuff
+        if path:
+            match = re.search(r'\d{2,3}', path)
+            self.viewer = Viewer(sample, int(match.group(0)))
+            self.masks.append(np.load(path))
+        else:    
+            # Use LassoSelector on the viewer's current axes
+            self.viewer = Viewer(sample)
+            self.instruction_text = None
+            self.lasso = LassoSelector(self.viewer.ax, onselect=self.onselect, useblit=True)
+            self.verts = None
+            # Connect the key press event
+            self.cid = self.viewer.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+            
+        # Set up the button for showing/hiding the mask
+        self.mask_button = Button(plt.axes([0.4, 0.225, 0.2, 0.075]), 'Toggle Mask', color='lightblue', hovercolor='0.975')
+        self.mask_button.on_clicked(self.toggleMask)
+
+    def onselect(self, verts):
+        self.verts = verts
+        # Remove any existing instruction text
+        if self.instruction_text is not None:
+            self.instruction_text.remove()
+        # Add new instruction text
+        self.instruction_text = self.viewer.ax.text(0.5, 0.01, "Press 'Enter' to confirm, 'Esc' to cancel.",
+                                                     transform=self.viewer.ax.transAxes,
+                                                     horizontalalignment='center',
+                                                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+        plt.draw()  # Make sure the drawing is updated
+
+    def on_key_press(self, event):
+        if event.key == 'enter' and self.verts is not None:
+            
+            # Remove instruction text and lasso selector after choice is confirmed
+            if self.instruction_text is not None:
+                self.instruction_text.remove()
+                self.instruction_text = None  # Reset the reference
+            
+            plt.draw()  # Update the drawing to reflect changes
+            self.lasso.active = False
+            self.process_selection(self.verts)
+            # Disconnect keypress as well
+            self.viewer.fig.canvas.mpl_disconnect(self.cid)
+
+        elif event.key == 'escape':
+            if self.instruction_text is not None:
+                self.instruction_text.set_text("Selection cancelled. Make a new selection.")
+                plt.draw()
+
+    def vesselMeasurements(self, sample, mask, washer_disk):
+
+        measurements = []
+
+        for i in range(len(sample.acquisition)):
+            conventional = sample.acquisition[i].conventional[:, :, self.viewer.slice_slider.val]
+            kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val]
+
+            # Calculate metrics for conventional and k-edge images
+            signal_HU, noise_HU = np.mean(conventional[mask]), np.mean(conventional[washer_disk])
+            CNR_HU = (signal_HU - noise_HU) / np.std(conventional[washer_disk])
+        
+            signal_Kedge, noise_Kedge = np.mean(kedge[mask]), np.mean(kedge[washer_disk])
+            CNR_Kedge = (signal_Kedge - noise_Kedge) / np.std(kedge[washer_disk])
+        
+            # Append metrics to the list
+            measurements.append([signal_HU, noise_HU, CNR_HU, signal_Kedge, noise_Kedge, CNR_Kedge])
+    
+        # Convert measurements list to a DataFrame and append it to self.data
+        new_data = pd.DataFrame(measurements, columns=self.data.columns)
+        self.data = pd.concat([self.data, new_data], ignore_index=True)
+        print(self.data)
+            
+    def process_selection(self, verts):
+        print("Processing the selection...")
+
+        #mask_file = input("Name the file to store the mask in. feature_sample_slice:")
+        # Create a Path object from the lasso vertices
+        lasso_path = Path(verts)
+
+        # Generate a mask for the selected region and an external washer mask for additional measurements
+        nx, ny = self.viewer.image_display.get_array().shape[1], self.viewer.image_display.get_array().shape[0]
+        x, y = np.meshgrid(np.arange(nx), np.arange(ny))
+        x, y = x.flatten(), y.flatten()
+        points = np.vstack((x,y)).T
+        mask = lasso_path.contains_points(points).reshape((ny,nx))
+
+        dilated_mask = binary_dilation(mask, disk(5))
+        washer_disk = dilated_mask & ~mask
+        
+            # Create an overlay image where the selected region and washer are highlighted
+        overlay = np.zeros((*mask.shape, 4))  # Create an RGBA image for overlay
+        overlay[mask, :] = [1, 0, 0, 0.5]  # Red with transparency for the selected region
+        overlay[washer_disk, :] = [0, 0, 1, 0.5]  # Blue with transparency for the washer region
+
+        if not self.masks:  # If masks list is empty
+            self.masks.append(overlay)  # Store the first overlay
+        else:
+            self.masks[0] = overlay  # Update the existing overlay
+        
+        np.save("mask.npy", self.masks[0])
+    
+        # Display the overlay on top of the original image
+        #self.viewer.ax.imshow(overlay, extent=self.viewer.image_display.get_extent())
+
+        print(self.viewer.slice_slider.val)
+
+        #Loop through all images and calculate values
+        self.vesselMeasurements(self.sample, mask, washer_disk)
+        #df = input("Please name the csv with measurements: feature_sample_date")
+        self.data.to_csv("dataframe.csv", index = False)
+    
+        # Force a redraw of the figure to update the display
+        self.viewer.fig.canvas.draw_idle()
+        
+    def toggleMask(self, event):
+        # Ensures that if a mask overlay exists, its visibility is toggled
+        if self.mask_overlay:
+            isVisible = not self.mask_overlay.get_visible()
+            self.mask_overlay.set_visible(isVisible)
+            self.viewer.fig.canvas.draw_idle()  # Refresh the display to show changes
+        else:
+            # If no overlay exists (likely because path was None and no selection was made yet),
+            # call showMask() to potentially create and show the overlay
+            self.showMask()
+
+    def showMask(self):
+        # If there's a mask to show, ensure it's properly displayed or updated
+        if self.masks:
+            if self.mask_overlay:
+                # If an overlay already exists, update its data
+                self.mask_overlay.set_data(self.masks[0])
+            else:
+                # Create the overlay with the mask data
+                self.mask_overlay = self.viewer.ax.imshow(self.masks[0], extent=self.viewer.image_display.get_extent(), alpha=0.5)
+                # Ensure it's visible
+                self.mask_overlay.set_visible(True)
+            self.viewer.fig.canvas.draw_idle()  # Refresh the display
+
