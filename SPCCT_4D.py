@@ -17,7 +17,7 @@ class Sample:
 
     """
     def __init__(self, rabbit_id):
-        self.rabbit_id = rabbit_id
+        self.rabbit_id = str(rabbit_id)
         self.acquisition = [] #we are in 4D, regardless if we want to look at conventional or Kedge, it will always correspond to a timepoint in acquisition
         self.fetch_data(rabbit_id)
 
@@ -26,7 +26,7 @@ class Sample:
         Using just the rabbit ID, this function will automatically find the relevant directory
         and add all timepoints from that directory.
         """
-        base_path = f"D:\copyRaw\Rabbit_AGUIX_{rabbit_id}"
+        base_path = f"D:\copyRaw\Rabbit_AGUIX_" + rabbit_id
         directories = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
         directories.sort()
 
@@ -42,28 +42,25 @@ class Sample:
         Take all the timepoints that fetch_data() identifies in order to create
         and append acquisitions to the acquisition array attribute
         """
-        suffix = None
         conventional = None
         kedge = None
+        suffixes = ["Conventional", r"Spectral\k_gadolinium"]
         time = t
 
-        for i in range(0,2):
-            if(i == 0):
-                suffix = r"Conventional"
-            elif(i==1):
-                suffix = r"Spectral\k_gadolinium"
-
+        for suffix in suffixes:
             specific_path = os.path.join(base_path, directories[t], suffix)
-            
+
+            # Initialize the list to collect DICOM file paths
             DCMFiles = []
             for dirName, _, fileList in os.walk(specific_path):
                 for filename in fileList:
                     if filename.lower().endswith('.dcm'):
                         DCMFiles.append(os.path.join(dirName, filename))
 
-                    if not DCMFiles:
-                        print("No DICOM files found in the specified path.")
-                        return None
+            # Check if no DICOM files were found after attempting to collect them
+            if not DCMFiles:
+                print(f"No DICOM files found in {specific_path}.")
+                continue  # Skip the rest of this iteration and proceed with the next suffix
 
             print(f"{suffix} file {t+1} total DICOM files found: {len(DCMFiles)}")
 
@@ -78,9 +75,9 @@ class Sample:
 
                 ArrayDicom[:, :, dim2] = rescale_image(images[1], img.pixel_array)
     
-            if(i == 0):
+            if(suffix == "Conventional"):
                 conventional = ArrayDicom
-            elif(i==1):
+            elif(suffix == "Spectral\k_gadolinium"):
              kedge = redefine_window(ArrayDicom)
              
         #Instantiate a timepoint class object and append it to the acquisition array
@@ -311,14 +308,18 @@ class vesselDiameter:
 
         for i in range(len(sample.acquisition)):
             conventional = sample.acquisition[i].conventional[:, :, self.viewer.slice_slider.val]
-            kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val]
-
+        
             # Calculate metrics for conventional and k-edge images
             signal_HU, noise_HU = np.mean(conventional[mask]), np.mean(conventional[washer_disk])
             CNR_HU = (signal_HU - noise_HU) / np.std(conventional[washer_disk])
         
-            signal_Kedge, noise_Kedge = np.mean(kedge[mask]), np.mean(kedge[washer_disk])
-            CNR_Kedge = (signal_Kedge - noise_Kedge) / np.std(kedge[washer_disk])
+            if sample.acquisition[i].kedge == None:
+              signal_Kedge, noise_Kedge, CNR_Kedge = None 
+            
+            else:
+                kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val]
+                signal_Kedge, noise_Kedge = np.mean(kedge[mask]), np.mean(kedge[washer_disk])
+                CNR_Kedge = (signal_Kedge - noise_Kedge) / np.std(kedge[washer_disk])
         
             # Append metrics to the list
             measurements.append([signal_HU, noise_HU, CNR_HU, signal_Kedge, noise_Kedge, CNR_Kedge])

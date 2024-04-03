@@ -120,8 +120,8 @@ generateAngioPlot <- function(stats_list, column_name, title, x_label, y_label) 
   
   # Plot
   ggplot(plot_data_long, aes(x = X, y = Value, group = Vessel, color = Vessel)) +
-    geom_line(size = 1) +  # Thicker lines
-    geom_point(size = 3) +  # Larger points
+    geom_line(size = 2) +  # Thicker lines
+    geom_point(size = 5) +  # Larger points
     scale_x_continuous(breaks = plot_data$X, labels = as.character(plot_data$X)) +  # Display discrete X values
     scale_color_manual(values = rainbow(length(vessel_names))) +
     labs(title = title, x = x_label, y = y_label) +
@@ -136,7 +136,7 @@ generateAngioPlot <- function(stats_list, column_name, title, x_label, y_label) 
 
 # Example usage
 stats_list <- list(DTA_stats, SAA_stats, IRA_stats, LRA_stats, RRA_stats, IVC_stats)
-generateAngioPlot(stats_list, "Signal_HU", "Conventional Angiography", "Minutes", "Houndsfield Units (HU)")
+generateAngioPlot(stats_list, "CNR_HU", "Vessel CNR (Conventional)", "Minutes", "CNR")
 
 
 
