@@ -16,19 +16,13 @@ SAA_stats <- vesselStats(SAA_data)
 IRA_data <- vesselLoad("IRA")
 IRA_stats <- vesselStats(IRA_data)
 
-# load left renal artery "LRA"
-LRA_data <- vesselLoad("LRA")
-LRA_stats <- vesselStats(LRA_data)
-
-# load right renal artery "RRA"
-RRA_data <- vesselLoad("RRA")
-RRA_stats <- vesselStats(RRA_data)
-
-
 # load inferior vena cava "IVC"
 IVC_data <- vesselLoad("IVC")
 IVC_stats <- vesselStats(IVC_data)
 
+# load infra renal vena cava "IRIVC"
+IRVC_data <- vesselLoad("IRVC")
+IRVC_stats <- vesselStats(IRA_data)
 
 vesselLoad <- function(tag, path = "Measurements/") {
   # Construct the pattern to search for files with the specific tag
@@ -106,7 +100,7 @@ library(ggplot2)
 generateAngioPlot <- function(stats_list, column_name, title, x_label, y_label) {
   # Prepare data for plotting
   plot_data <- data.frame(X = c(0.11, 0.5, 1, 3, 10))
-  vessel_names <- c("DTA", "SAA", "IRA", "LRA", "RRA", "IVC")
+  vessel_names <- c("DTA", "SAA", "IRA", "IVC", "IRVC")
   
   for (i in seq_along(stats_list)) {
     vessel_stats <- stats_list[[i]]

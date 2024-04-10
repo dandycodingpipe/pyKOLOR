@@ -21,6 +21,10 @@ class Sample:
         self.acquisition = [] #we are in 4D, regardless if we want to look at conventional or Kedge, it will always correspond to a timepoint in acquisition
         self.fetch_data(rabbit_id)
 
+    def rm_acquisition(self, idx):
+        del self.acquisition[idx]
+        return self.acquisition
+
     def fetch_data(self, rabbit_id):
         """
         Using just the rabbit ID, this function will automatically find the relevant directory
@@ -312,9 +316,11 @@ class vesselDiameter:
             # Calculate metrics for conventional and k-edge images
             signal_HU, noise_HU = np.mean(conventional[mask]), np.mean(conventional[washer_disk])
             CNR_HU = (signal_HU - noise_HU) / np.std(conventional[washer_disk])
+
+            kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val] if sample.acquisition[i].kedge is not None else None
         
-            if sample.acquisition[i].kedge == None:
-              signal_Kedge, noise_Kedge, CNR_Kedge = None 
+            if kedge is None or (isinstance(kedge, np.ndarray) and np.isnan(kedge).any()):
+                signal_Kedge, noise_Kedge, CNR_Kedge = np.nan, np.nan, np.nan
             
             else:
                 kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val]
