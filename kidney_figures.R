@@ -111,24 +111,24 @@ plotRenalDataBars <- function(stats_list, title, data, ylab, y_breaks) {
   gg <- ggplot(plot_data, aes(x = TimePoint, y = Signal, fill = RenalArea)) +
     geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
     geom_errorbar(aes(ymin = Signal - SD, ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
-    scale_fill_manual(values = c("Cortex" = "pink", "Medulla" = "lightblue", "Pelvis" = "lightgreen")) +
+    scale_fill_manual(values = c("Cortex" = "purple", "Medulla" = "orange", "Pelvis" = "lightgreen")) +
     labs(title = title, x = "Time (min)", y = ylab) +
     scale_y_continuous(expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
     theme_minimal() +
     theme(
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
-      plot.title = element_text(hjust = 0.5), 
+      plot.title = element_text(hjust = 0.5, size = 24), 
       legend.title = element_blank(), 
       axis.line = element_line(color="black", size = 1),
       axis.line.x = element_line(color = "black", size = 1),
       axis.line.y = element_line(color = "black", size = 1),
       axis.ticks = element_line(color = "black"), axis.title = element_text(size = 32),
       panel.border = element_blank(),
-      axis.title.y = element_text(size = 18, margin = margin(r = 20)),
-      axis.title.x = element_text(size = 18, margin = margin(t = 20)),
-      panel.background = element_rect(fill = "white"), axis.text.x = element_text(size = 14),
-      axis.text = element_text(size = 14, margin = margin(r = 20), face = "bold" )
+      axis.title.y = element_text(size = 24, margin = margin(r = 20)),
+      axis.title.x = element_text(size = 24, margin = margin(t = 20)),
+      panel.background = element_rect(fill = "white"), axis.text.x = element_text(size = 24),
+      axis.text = element_text(size = 24, margin = margin(r = 20), face = "bold" )
     ) +
     geom_vline(xintercept = c(2.5, 4.5), linetype = "dotted", color = "black") # Vertical dotted lines
   
@@ -139,6 +139,6 @@ plotRenalDataBars <- function(stats_list, title, data, ylab, y_breaks) {
 # Example usage:
 stats_list <- list(cortex_stats, medulla_stats, pelvis_stats)
 plotRenalDataBars(stats_list, "Gd K-edge Renal Elimination", "Signal_Kedge", "[Gd] (mg/mL)", y_breaks = c(1:10) )
-plotRenalDataBars(stats_list, "Conventional CT Angiography", "Signal_HU", "Hounsfield Units (HU)", y_breaks = c(100, 200, 300, 400 ,500, 600))
+plotRenalDataBars(stats_list, "Conventional CT Renal Elimination", "Signal_HU", "Hounsfield Units (HU)", y_breaks = c(100, 200, 300, 400 ,500, 600))
 #plotRenalDataBars(stats_list, "Gd K-edge Angiography", "CNR_Kedge", "A.U" )
 

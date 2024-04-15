@@ -123,17 +123,17 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
     theme(
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
-      plot.title = element_text(hjust = 0.5), 
+      plot.title = element_text(hjust = 0.5, size = 24), 
       legend.title = element_blank(), 
       axis.line = element_line(color="black", size = 1),
       axis.line.x = element_line(color = "black", size = 1),
       axis.line.y = element_line(color = "black", size = 1),
-      axis.ticks = element_line(color = "black"), axis.title = element_text(size = 32),
+      axis.ticks = element_line(color = "black"), axis.title = element_text(size = 24),
       panel.border = element_blank(),
-      axis.title.y = element_text(size = 18, margin = margin(r = 20)),
-      axis.title.x = element_text(size = 18, margin = margin(t = 20)),
-      panel.background = element_rect(fill = "white"), axis.text.x = element_text(size = 14),
-      axis.text = element_text(size = 14, margin = margin(r = 20), face = "bold" )
+      axis.title.y = element_text(size = 24, margin = margin(r = 20)),
+      axis.title.x = element_text(size = 24, margin = margin(t = 20)),
+      panel.background = element_rect(fill = "white"), axis.text.x = element_text(size = 24),
+      axis.text = element_text(size = 24, margin = margin(r = 20), face = "bold" )
     )+
     scale_x_discrete(name = x_label) +
     geom_vline(xintercept = c(2.5, 4.5), linetype = "dotted", color = "black") # Vertical dotted lines
