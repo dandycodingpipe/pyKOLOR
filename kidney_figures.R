@@ -138,7 +138,7 @@ plotRenalDataBars <- function(stats_list, title, data, ylab, y_breaks) {
 
 # Example usage:
 stats_list <- list(cortex_stats, medulla_stats, pelvis_stats)
-plotRenalDataBars(stats_list, "Gd K-edge Renal Elimination", "Signal_Kedge", "[Gd] (mg/mL)", y_breaks = c(1:10) )
+#plotRenalDataBars(stats_list, "Gd K-edge Renal Elimination", "Signal_Kedge", "[Gd] (mg/mL)", y_breaks = c(1:10) )
 plotRenalDataBars(stats_list, "Conventional CT Renal Elimination", "Signal_HU", "Hounsfield Units (HU)", y_breaks = c(100, 200, 300, 400 ,500, 600))
 #plotRenalDataBars(stats_list, "Gd K-edge Angiography", "CNR_Kedge", "A.U" )
 
