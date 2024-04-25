@@ -48,7 +48,7 @@ class Sample:
         """
         conventional = None
         kedge = None
-        suffixes = ["Conventional", r"Spectral\k_gadolinium"]
+        suffixes = ["Conventional", r"Spectral/k_gadolinium"]
         time = t
 
         for suffix in suffixes:
@@ -81,7 +81,7 @@ class Sample:
     
             if(suffix == "Conventional"):
                 conventional = ArrayDicom
-            elif(suffix == "Spectral\k_gadolinium"):
+            elif(suffix == "Spectral/k_gadolinium"):
              kedge = redefine_window(ArrayDicom)
              
         #Instantiate a timepoint class object and append it to the acquisition array
