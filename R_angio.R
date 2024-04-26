@@ -83,10 +83,10 @@ vesselStats <- function(data) {
 
 
 
-dotarem_SAA_data <- vesselLoad("SAA", group = "d")
-dotarem_IRA_data <- vesselLoad("IRA", group = "d")
-dotarem_IVC_data <- vesselLoad("IVC", group = "d")
-dotarem_IRVC_data <- vesselLoad("IRVC", group = "d")
+dotarem_SAA_data <- vesselLoad("SAA", group = "s")
+dotarem_IRA_data <- vesselLoad("IRA", group = "s")
+dotarem_IVC_data <- vesselLoad("IVC", group = "s")
+dotarem_IRVC_data <- vesselLoad("IRVC", group = "s")
 
 #aguix ONLY
 correct <-c(1,3,4,5,6,7)

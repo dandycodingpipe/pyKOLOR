@@ -1,30 +1,5 @@
 template_df = data.frame("t" = c(0.11, 0.5, 1, 3, 10), "hu" = c(1:5), "hu_std" = c(1:5), "gd" = c(1:5), "gd_std"= c(1:5))
 
-pancreas = template_df
-pancreas$hu = c(135.6833333,
-                132.831132,
-                110.3432957,
-                92.23961988,
-                82.38494152)
-
-pancreas$hu_std = c(41.61778241,
-                    21.1612744,
-                    15.14903877,
-                    19.22023409,
-                    16.65508335)
-
-pancreas$gd = c(0.9869895,
-                0.674483208,
-                0.441516876,
-                0.180315288,
-                0.092470029)
-
-pancreas$gd_std = c(0.575670749,
-                    0.276528101,
-                    0.169756531,
-                    0.086521174,
-                    0.089290014)
-
 spleen = template_df
 
 spleen$hu = c(154.0504762,
@@ -85,6 +60,74 @@ liver$gd_std = c(0.002857,
                  
 )
 
+# Create lists for averages and standard deviations for spleen and liver
+spleen_stats <- list(
+  averages = data.frame(
+    t = spleen$t,
+    Signal_HU = spleen$hu,
+    Signal_Kedge = spleen$gd
+  ),
+  std_devs = data.frame(
+    t = spleen$t,
+    Signal_HU = spleen$hu_std,
+    Signal_Kedge = spleen$gd_std
+  )
+)
+
+liver_stats <- list(
+  averages = data.frame(
+    t = liver$t,
+    Signal_HU = liver$hu,
+    Signal_Kedge = liver$gd
+  ),
+  std_devs = data.frame(
+    t = liver$t,
+    Signal_HU = liver$hu_std,
+    Signal_Kedge = liver$gd_std
+  )
+)
+
+spleen_stats_adjusted <- list(
+  averages = data.frame(
+    t = spleen_stats$averages$t,
+    Signal_HU = spleen_stats$averages$Signal_HU,
+    Signal_Kedge = spleen_stats$averages$Signal_Kedge,
+    Noise_HU = rep(NA, nrow(spleen_stats$averages)),  # Placeholder if needed
+    Noise_Kedge = rep(NA, nrow(spleen_stats$averages)),  # Placeholder if needed
+    CNR_HU = rep(NA, nrow(spleen_stats$averages)),  # Placeholder if needed
+    CNR_Kedge = rep(NA, nrow(spleen_stats$averages))  # Placeholder if needed
+  ),
+  std_devs = data.frame(
+    t = spleen_stats$std_devs$t,
+    Signal_HU = spleen_stats$std_devs$Signal_HU,
+    Signal_Kedge = spleen_stats$std_devs$Signal_Kedge,
+    Noise_HU = rep(NA, nrow(spleen_stats$std_devs)),  # Placeholder if needed
+    Noise_Kedge = rep(NA, nrow(spleen_stats$std_devs)),  # Placeholder if needed
+    CNR_HU = rep(NA, nrow(spleen_stats$std_devs)),  # Placeholder if needed
+    CNR_Kedge = rep(NA, nrow(spleen_stats$std_devs))  # Placeholder if needed
+  )
+)
+
+liver_stats_adjusted <- list(
+  averages = data.frame(
+    t = liver_stats$averages$t,
+    Signal_HU = liver_stats$averages$Signal_HU,
+    Signal_Kedge = liver_stats$averages$Signal_Kedge,
+    Noise_HU = rep(NA, nrow(liver_stats$averages)),  # Placeholder if needed
+    Noise_Kedge = rep(NA, nrow(liver_stats$averages)),  # Placeholder if needed
+    CNR_HU = rep(NA, nrow(liver_stats$averages)),  # Placeholder if needed
+    CNR_Kedge = rep(NA, nrow(liver_stats$averages))  # Placeholder if needed
+  ),
+  std_devs = data.frame(
+    t = liver_stats$std_devs$t,
+    Signal_HU = liver_stats$std_devs$Signal_HU,
+    Signal_Kedge = liver_stats$std_devs$Signal_Kedge,
+    Noise_HU = rep(NA, nrow(liver_stats$std_devs)),  # Placeholder if needed
+    Noise_Kedge = rep(NA, nrow(liver_stats$std_devs)),  # Placeholder if needed
+    CNR_HU = rep(NA, nrow(liver_stats$std_devs)),  # Placeholder if needed
+    CNR_Kedge = rep(NA, nrow(liver_stats$std_devs))  # Placeholder if needed
+  )
+)
 
 library(ggplot2)
 
@@ -111,7 +154,7 @@ plotOrganDataBars <- function(data_list, title, ylab, y_breaks, type) {
     geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
     geom_errorbar(aes_string(ymin = paste(signal, "-", std), ymax = paste(signal, "+", std)), 
                   width = 0.2, position = position_dodge(width = 0.7)) +
-    scale_fill_manual(values = c("Pancreas" = "cyan", "Spleen" = "hotpink", "Liver" = "gold")) +
+    scale_fill_manual(values = c("Spleen" = "hotpink", "Liver" = "gold")) +
     labs(title = title, x = "Time (min)", y = ylab) +
     scale_y_continuous(expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
     theme_minimal() +

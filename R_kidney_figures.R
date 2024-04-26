@@ -82,20 +82,20 @@ vesselStats <- function(data) {
 
 
 # Loading renal data and generating descriptive stats
-dotarem_cortex_data <- renalLoad("r_cortex", group = "d")
-dotarem_medulla_data <- renalLoad("r_medulla", group = "d")
-dotarem_pelvis_data <- renalLoad("r_pelvis", group = "d")
+cortex_data <- renalLoad("r_cortex", group = "s")
+medulla_data <- renalLoad("r_medulla", group = "s")
+pelvis_data <- renalLoad("r_pelvis", group = "s")
 
 #aguix ONLY
-correct <-c(1,3,4,5,6,7)
-aguix_cortex_data <- aguix_cortex_data[correct]
-aguix_medulla_data <- aguix_medulla_data[correct]
-aguix_pelvis_data <- aguix_pelvis_data[correct]
+#correct <-c(1,3,4,5,6,7)
+#aguix_cortex_data <- aguix_cortex_data[correct]
+#aguix_medulla_data <- aguix_medulla_data[correct]
+#aguix_pelvis_data <- aguix_pelvis_data[correct]
 
 
-dotarem_cortex_stats <- vesselStats(dotarem_cortex_data)
-dotarem_medulla_stats <- vesselStats(dotarem_medulla_data)
-dotarem_pelvis_stats <- vesselStats(dotarem_pelvis_data)
+cortex_stats <- vesselStats(cortex_data)
+medulla_stats <- vesselStats(medulla_data)
+pelvis_stats <- vesselStats(pelvis_data)
 
 # Function to generate a simple plot for one of the renal areas
 plotRenalData <- function(stats, title) {
@@ -112,51 +112,58 @@ library(reshape2) # For melting the data into long format
 
 plotRenalDataBars <- function(stats_list, title, data, ylab, y_breaks) {
   # Assuming Time Points are consistent across datasets
-  time_points <- c(0.11, 0.5, 1, 3, 10) # Adjust if your time points are different
+  time_points <- c(0.11, 0.5, 1, 3, 10)  # Adjust if your time points are different
   
-  renal_areas <- c("Cortex", "Medulla", "Pelvis")
-  renal_areas <- c("AGuIX", "Dotarem")
+  renal_areas <- c("Liver", "Spleen", "Cortex", "Medulla", "Pelvis")  # Specified order here
+  
   # Prepare data for plotting
-  plot_data <- data.frame(TimePoint = rep(time_points, times = length(renal_areas)),
-                          Signal = unlist(lapply(stats_list, function(x) x$averages[[data]])),
-                          SD = unlist(lapply(stats_list, function(x) x$std_devs[[data]])),
-                          RenalArea = rep(renal_areas, each = length(time_points)))
+  plot_data <- data.frame(
+    TimePoint = rep(time_points, times = length(renal_areas)),
+    Signal = unlist(lapply(stats_list, function(x) x$averages[[data]])),
+    SD = unlist(lapply(stats_list, function(x) x$std_devs[[data]])),
+    RenalArea = rep(renal_areas, each = length(time_points))
+  )
+  
+  # Set RenalArea as a factor with the specified order
+  plot_data$RenalArea <- factor(plot_data$RenalArea, levels = renal_areas)
   
   # Convert TimePoint to a factor to have discrete bars
   plot_data$TimePoint <- factor(plot_data$TimePoint, levels = as.character(time_points))
   
   gg <- ggplot(plot_data, aes(x = TimePoint, y = Signal, fill = RenalArea)) +
     geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
-    #geom_errorbar(aes(ymin = Signal - SD, ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
-    scale_fill_manual(values = c("Cortex" = "purple", "Medulla" = "orange", "Pelvis" = "lightgreen", AGuIX = "lightblue", "Dotarem" = "gold")) +
+    geom_errorbar(aes(ymin = Signal - SD, ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
+    scale_fill_manual(values = c("Liver" = "gold", "Spleen" = "hotpink", "Cortex" = "purple", "Medulla" = "orange", "Pelvis" = "lightgreen")) +
     labs(title = title, x = "Time (min)", y = ylab) +
     scale_y_continuous(expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
     theme_minimal() +
     theme(
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
-      plot.title = element_text(hjust = 0.5, size = 30), 
-      legend.title = element_blank(), 
-      axis.line = element_line(color="black", size = 1),
+      plot.title = element_text(hjust = 0.5, size = 30),
+      legend.title = element_blank(),
+      axis.line = element_line(color = "black", size = 1),
       axis.line.x = element_line(color = "black", size = 1),
       axis.line.y = element_line(color = "black", size = 1),
-      axis.ticks = element_line(color = "black"), axis.title = element_text(size = 30),
+      axis.ticks = element_line(color = "black"),
+      axis.title = element_text(size = 30),
       panel.border = element_blank(),
       axis.title.y = element_text(size = 30, margin = margin(r = 20)),
       axis.title.x = element_text(size = 30, margin = margin(t = 20)),
-      panel.background = element_rect(fill = "white"), axis.text.x = element_text(size = 30),
-      axis.text = element_text(size = 30, margin = margin(r = 20), face = "bold" )
+      panel.background = element_rect(fill = "white"),
+      axis.text.x = element_text(size = 30),
+      axis.text = element_text(size = 30, margin = margin(r = 20), face = "bold")
     ) +
-    geom_vline(xintercept = c(2.5, 4.5), linetype = "dotted", color = "black") # Vertical dotted lines
+    geom_vline(xintercept = c(2.5, 4.5), linetype = "dotted", color = "black")  # Vertical dotted lines
   
   # Print the plot
   print(gg)
 }
 
-# Example usage:
-#stats_list <- list(cortex_stats, medulla_stats, pelvis_stats)
-stats_list <- list(aguix_medulla_stats, dotarem_medulla_stats )
-plotRenalDataBars(stats_list, "Gd K-edge Renal Elimination", "Signal_Kedge", "[Gd] (mg/mL)", y_breaks = c(1:10) )
+# Ensure your stats_list is correct and includes the ordered data
+stats_list <- list(liver_stats_adjusted, spleen_stats_adjusted, cortex_stats, medulla_stats, pelvis_stats)
+
+plotRenalDataBars(stats_list, "Gd K-edge Biodistribution", "Signal_Kedge", "[Gd] (mg/mL)", y_breaks = c(1:10))
 plotRenalDataBars(stats_list, "Medulla Enhancement", "Signal_HU", "Hounsfield Units (HU)", y_breaks = c(50,100, 150, 200, 300, 400 ,500, 600))
 #plotRenalDataBars(stats_list, "Gd K-edge Angiography", "CNR_Kedge", "A.U" )
 
