@@ -83,23 +83,23 @@ vesselStats <- function(data) {
 
 
 
-dotarem_SAA_data <- vesselLoad("SAA", group = "s")
-dotarem_IRA_data <- vesselLoad("IRA", group = "s")
-dotarem_IVC_data <- vesselLoad("IVC", group = "s")
-dotarem_IRVC_data <- vesselLoad("IRVC", group = "s")
+SAA_data <- vesselLoad("SAA", group = "s")
+IRA_data <- vesselLoad("IRA", group = "s")
+IVC_data <- vesselLoad("IVC", group = "s")
+IRVC_data <- vesselLoad("IRVC", group = "s")
 
 #aguix ONLY
-correct <-c(1,3,4,5,6,7)
-aguix_SAA_data <- aguix_SAA_data[correct]
-aguix_IRA_data <- aguix_IRA_data[correct]
-aguix_IVC_data <- aguix_IVC_data[correct]
-aguix_IRVC_data <- aguix_IRVC_data[correct]
+#correct <-c(1,3,4,5,6,7)
+#aguix_SAA_data <- aguix_SAA_data[correct]
+#aguix_IRA_data <- aguix_IRA_data[correct]
+#aguix_IVC_data <- aguix_IVC_data[correct]
+#aguix_IRVC_data <- aguix_IRVC_data[correct]
 
-dotarem_SAA_stats <- vesselStats(dotarem_SAA_data)
-dotarem_IRA_stats <- vesselStats(dotarem_IRA_data)
-dotarem_IVC_stats <- vesselStats(dotarem_IVC_data)
-dotarem_IRVC_stats <- vesselStats(dotarem_IRVC_data)
-#dotarem_
+SAA_stats <- vesselStats(SAA_data)
+IRA_stats <- vesselStats(IRA_data)
+IVC_stats <- vesselStats(IVC_data)
+IRVC_stats <- vesselStats(IRVC_data)
+
 
 
 
@@ -107,8 +107,8 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
   # Assuming Time Points are consistent across datasets
   time_points <- factor(c(0.11, 0.5, 1, 3, 10)) # Convert to factor for discrete axis
   
-  #vessel_names <- c("SAA", "IRA", "IVC", "IRVC")
-  vessel_names <- c("AGuIX", "Dotarem")
+  vessel_names <- c("SAA", "IRA", "IVC", "IRVC")
+  #vessel_names <- c("AGuIX", "Dotarem")
   colors <- c("SAA" = "red", "IRA" = "pink", "IVC" = "blue", "IRVC" = "lightblue","AGuIX" = "lightblue", "Dotarem" = "gold")
   
   # Prepare data for plotting
@@ -118,7 +118,7 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
   
   gg <- ggplot(plot_data, aes(x = TimePoint, y = Signal, fill = Vessel, group = Vessel)) +
     geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
-    #geom_errorbar(aes(ymin = pmax(Signal - SD, 0), ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
+    geom_errorbar(aes(ymin = pmax(Signal - SD, 0), ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
     scale_fill_manual(values = colors) +
     labs(title = title, x = x_label, y = y_label) +
     scale_y_continuous(expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
@@ -146,7 +146,8 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
 }
 
 # Example usage
-stats_list <- list(aguix_IRA_stats, dotarem_IRA_stats)
+#stats_list <- list(aguix_IRA_stats, dotarem_IRA_stats)
+stats_list <- list(SAA_stats, IRA_stats, IVC_stats, IRVC_stats)
 #stats_list <- list(aguix_SAA_stats, aguix_IRA_stats, aguix_IVC_stats, aguix_IRVC_stats)
-generateAngioBarsWithError(stats_list, "Signal_HU", "IRA Enhancement", "Time (min)", "Hounsfield Units (HU)",  y_breaks = c(100, 200, 300, 400 ,500, 600))
+#generateAngioBarsWithError(stats_list, "Signal_HU", "IRA Enhancement", "Time (min)", "Hounsfield Units (HU)",  y_breaks = c(100, 200, 300, 400 ,500, 600))
 generateAngioBarsWithError(stats_list, "Signal_Kedge", "Gd K-edge Angiography", "Time (min)", "[Gd] (mg/mL)", y_breaks = c(1:10))

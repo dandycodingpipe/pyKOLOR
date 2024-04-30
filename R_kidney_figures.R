@@ -135,7 +135,7 @@ plotRenalDataBars <- function(stats_list, title, data, ylab, y_breaks) {
     geom_errorbar(aes(ymin = Signal - SD, ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
     scale_fill_manual(values = c("Liver" = "gold", "Spleen" = "hotpink", "Cortex" = "purple", "Medulla" = "orange", "Pelvis" = "lightgreen")) +
     labs(title = title, x = "Time (min)", y = ylab) +
-    scale_y_continuous(expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
+    scale_y_continuous(limits = c(0, 9.5), expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
     theme_minimal() +
     theme(
       panel.grid.major = element_blank(),

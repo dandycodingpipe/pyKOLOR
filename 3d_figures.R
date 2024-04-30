@@ -8,15 +8,35 @@ time_points <- c(0.11, 0.5, 1, 3, 10)
 # Add significance values directly into the data frames
 IVC_data <- data.frame(
   Time = factor(time_points, levels = time_points),
-  AGuIX = c(74.42618212, 95.34787468, 90.50486602, 80.78431054, 67.79462498),
-  Dotarem = c(48.2020607, 74.2085961, 70.71206251, 63.18065587, 53.14613331),
+  AGuIX = c(0.866579641,
+            1.169944183,
+            1.099720557,
+            0.958772503,
+            0.770422062
+  ),
+  Dotarem = c(0.48632988,
+              0.863424643,
+              0.812724906,
+              0.70351951,
+              0.558018933
+  ),
   Sig1 = c(0.2802, 0.01074, 0.02637, 0.02916, 0.02726)
 )
 
 Aorta_data <- data.frame(
   Time = factor(time_points, levels = time_points),
-  AGuIX = c(260.3327306, 92.02282838, 87.01680997, 76.28006995, 65.55454846),
-  Dotarem = c(266.4808005, 71.49334339, 72.62610733, 63.61248562, 57.30236301),
+  AGuIX = c(3.562224594,
+            1.121731011,
+            1.049143745,
+            0.893461014,
+            0.737940953
+  ),
+  Dotarem = c(3.651371607,
+              0.824053479,
+              0.840478556,
+              0.709781042,
+              0.618284264
+  ),
   Sig2 = c(0.9875, 0.007302, 0.0387, 0.02073, 0.06486)
 )
 
@@ -45,7 +65,7 @@ gg <- ggplot(combined_data, aes(x = Time, y = Signal, fill = Agent)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
   scale_fill_manual(values = c("AGuIX" = "lightblue", "Dotarem" = "gold")) +
   facet_wrap(~Location, scales = "free_y") +
-  labs(x = "Time (min)", y = "Mean Blood Attenuation (HU)") +
+  labs(x = "Time (min)", y = "[Gd] (mg/mL)") +
   theme_minimal() +
   theme(
     text = element_text(family = font_family),
@@ -60,7 +80,7 @@ gg <- ggplot(combined_data, aes(x = Time, y = Signal, fill = Agent)) +
     strip.text = element_text(size = font_size_facet, face = "bold"),
     axis.line = element_line(color = "black", size = 1)
   ) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = function(x) c(0, max(x) + 10)) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = function(x) c(0, max(x) + 1)) +
   geom_vline(xintercept = c(2.5, 4.5), linetype = "dotted", color = "black") +
   geom_text(data = filter(combined_data, Sig < 0.05), aes(label = "*", group = Agent), position = position_dodge(width = 0.7), vjust = 0.05, color = "black") +
   geom_text(data = filter(combined_data, Sig < 0.01), aes(label = "**", group = Agent), position = position_dodge(width = 0.7), vjust = 0.05, color = "black") +

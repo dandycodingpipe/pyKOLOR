@@ -2,7 +2,7 @@ library(ggplot2)
 library(grid)
 
 # Define categories and their corresponding unique colors
-categories <- c("Suprarenal abdominal aorta", "Infrarenal aorta", "Inferior vena cava", "Infrarenal vena cava" ,"Cortex","Medulla", "Pelvis", "Liver", "Spleen", "Pancreas")
+categories <- c("Suprarenal abdominal aorta", "Infrarenal aorta", "Inferior vena cava", "Infrarenal vena cava" ,"Cortex","Medulla", "Pelvis", "Liver" ,"Spleen")
 colors <- c("Suprarenal abdominal aorta" = "red", 
             "Infrarenal aorta" = "pink",  
             "Inferior vena cava" = "blue", 
@@ -11,7 +11,6 @@ colors <- c("Suprarenal abdominal aorta" = "red",
             "Medulla" = "orange",  
             "Pelvis" = "lightgreen",
             "Liver" = "gold",
-            "Pancreas" = "cyan",
             "Spleen"=  "hotpink")
 
 # Create a dummy dataframe
@@ -28,7 +27,7 @@ gg <- ggplot(data, aes(x = 1, y = Category, fill = Category)) +
         legend.spacing.x = unit(1, "cm"),  # Increase spacing between legend columns
         legend.spacing.y = unit(1, "cm")) +  # Increase spacing between legend rows
   guides(fill = guide_legend(title = "", 
-                             nrow = 10, ncol = 1,  # Specify the layout of the legend items
+                             nrow = 3, ncol = 3,  # Specify the layout of the legend items
                              byrow = TRUE))  # Fill by rows first
 
 # Extract the legend
