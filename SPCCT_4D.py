@@ -405,7 +405,7 @@ class VesselAnalyzer:
     def __init__(self, sample, path=None):
         self.sample = sample
         self.path = path
-        self.data = pd.DataFrame(columns=["Signal_HU", "Noise_HU", "CNR_HU", "Signal_Kedge", "Noise_Kedge", "CNR_Kedge"])
+        self.data = pd.DataFrame(columns=["Signal_HU", "Noise_HU", "Signal_std" , "CNR_HU", "Signal_Kedge", "Noise_Kedge", "Kedge_std", "CNR_Kedge"])
         self.masks = []
         self.mask_overlay = None
 
@@ -450,7 +450,7 @@ class VesselAnalyzer:
             conventional = sample.acquisition[i].conventional[:, :, self.viewer.slice_slider.val]
         
             # Calculate metrics for conventional and k-edge images
-            signal_HU, noise_HU = np.mean(conventional[circular_mask]), np.mean(conventional[washer_mask])
+            signal_HU, noise_HU, signal_Std = np.mean(conventional[circular_mask]), np.mean(conventional[washer_mask]), np.std(conventional[circular_mask])
             CNR_HU = (signal_HU - noise_HU) / np.std(conventional[washer_mask])
 
             kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val] if sample.acquisition[i].kedge is not None else None
@@ -460,11 +460,11 @@ class VesselAnalyzer:
             
             else:
                 kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val]
-                signal_Kedge, noise_Kedge = np.mean(kedge[circular_mask]), np.mean(kedge[washer_mask])
+                signal_Kedge, noise_Kedge, kedge_Std = np.mean(kedge[circular_mask]), np.mean(kedge[washer_mask]), np.std(kedge[circular_mask])
                 CNR_Kedge = (signal_Kedge - noise_Kedge) / np.std(kedge[washer_mask])
         
             # Append metrics to the list
-            measurements.append([signal_HU, noise_HU, CNR_HU, signal_Kedge, noise_Kedge, CNR_Kedge])
+            measurements.append([signal_HU, noise_HU, signal_Std, CNR_HU, signal_Kedge, noise_Kedge, kedge_Std, CNR_Kedge])
     
         # Convert measurements list to a DataFrame and append it to self.data
         new_data = pd.DataFrame(measurements, columns=self.data.columns)

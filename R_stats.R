@@ -51,16 +51,12 @@ print(t.test(aguix_pelvis_stats$averages$Signal_HU , dotarem_pelvis_stats$averag
 #Global 
 
 
- meanAGuIX <- c(0.866579641,
-                1.169944183,
-                1.099720557,
-                0.958772503,
-                0.770422062
-                
-                
+ meanAGuIX <- c(
+   58.22929538,	66.17912458,	73.57513396,	69.37245746,	67.17082104
+   
  )
  
- stdAGuIX <- c(0.558441541,
+ stdAGuIX <- c(
                0.155536453,
                0.124091693,
                0.071656162,
@@ -68,16 +64,12 @@ print(t.test(aguix_pelvis_stats$averages$Signal_HU , dotarem_pelvis_stats$averag
            
  )
  
-  meanDotarem <- c(0.48632988,
-                   0.863424643,
-                   0.812724906,
-                   0.70351951,
-                   0.558018933
-                   
-                   
+  meanDotarem <- c(
+    58.14938419,	61.7525301,	55.25225812,	63.00042838,	48.35721426
+                
   )
  
-   stdDotarem <- c(0.748274375,
+   stdDotarem <- c(
                    0.169046512,
                    0.134017922,
                    0.220310831,
@@ -94,4 +86,8 @@ print(shapiro.test(stdAGuIX - stdDotarem))
 
 print(t.test(meanAGuIX, meanDotarem, paired = TRUE))
 print(t.test(stdAGuIX, stdDotarem, paired = TRUE))
-print(wilcox.test(stdAGuIX, stdDotarem, paired = TRUE))
+print(wilcox.test(meanAGuIX, meanDotarem, paired = TRUE))
+
+
+print(shapiro.test(IRVC_stats$averages$CNR_Kedge - IRVC_stats$averages$CNR_HU))
+t.test(IRVC_stats$averages$CNR_Kedge, IRVC_stats$averages$CNR_HU, paired = TRUE)

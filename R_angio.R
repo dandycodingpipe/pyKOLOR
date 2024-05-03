@@ -33,6 +33,25 @@ vesselLoad <- function(tag, path = "Vessel_Measurements/", group) {
   return(data_list)
 }
 
+adjust_and_calculate_CNR <- function(data) {
+  adjusted_data <- list()
+  noise_data <- read.csv("cnr_adjustments.csv")
+  for (i in seq_along(data)) {
+    if (i <= nrow(noise_data)) {
+      df <- data[[i]]
+  
+      # Example CNR calculation (modify according to your logic)
+      df$CNR_HU <- (df$Signal_HU - noise_data$adj_noise[i])/noise_data$adj_std[i]
+      df$CNR_Kedge <- (df$Signal_Kedge - noise_data$adj_kedge[i])/noise_data$adj_kstd[i]
+      
+      adjusted_data[[i]] <- df
+    }
+  }
+  
+  return(adjusted_data)
+}
+
+
 vesselStats <- function(data) {
   # Prepare data frames to store the final averages and standard deviations
   averages_df <- data.frame(matrix(ncol = ncol(data[[1]]), nrow = nrow(data[[1]])))
@@ -88,6 +107,12 @@ IRA_data <- vesselLoad("IRA", group = "s")
 IVC_data <- vesselLoad("IVC", group = "s")
 IRVC_data <- vesselLoad("IRVC", group = "s")
 
+# Adjust noise and calculate CNR for each data set
+SAA_adjusted <- adjust_and_calculate_CNR(SAA_data)
+IRA_adjusted <- adjust_and_calculate_CNR(IRA_data)
+IVC_adjusted <- adjust_and_calculate_CNR(IVC_data)
+IRVC_adjusted <- adjust_and_calculate_CNR(IRVC_data)
+
 #aguix ONLY
 #correct <-c(1,3,4,5,6,7)
 #aguix_SAA_data <- aguix_SAA_data[correct]
@@ -95,10 +120,10 @@ IRVC_data <- vesselLoad("IRVC", group = "s")
 #aguix_IVC_data <- aguix_IVC_data[correct]
 #aguix_IRVC_data <- aguix_IRVC_data[correct]
 
-SAA_stats <- vesselStats(SAA_data)
-IRA_stats <- vesselStats(IRA_data)
-IVC_stats <- vesselStats(IVC_data)
-IRVC_stats <- vesselStats(IRVC_data)
+SAA_stats <- vesselStats(SAA_adjusted)
+IRA_stats <- vesselStats(IRA_adjusted)
+IVC_stats <- vesselStats(IVC_adjusted)
+IRVC_stats <- vesselStats(IRVC_adjusted)
 
 
 
@@ -119,9 +144,12 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
   gg <- ggplot(plot_data, aes(x = TimePoint, y = Signal, fill = Vessel, group = Vessel)) +
     geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
     geom_errorbar(aes(ymin = pmax(Signal - SD, 0), ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
+    #geom_errorbar(aes(ymin = Signal - SD, ymax = Signal + SD), width = 0.2, position = position_dodge(width = 0.7)) +
+    
     scale_fill_manual(values = colors) +
     labs(title = title, x = x_label, y = y_label) +
-    scale_y_continuous(expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
+    #limits = c(1,10)
+    scale_y_continuous(limits = c(0,9.5), expand = expansion(mult = c(0.003, 0.006)), breaks = y_breaks) +
     theme_minimal() +
     theme(
       panel.grid.major = element_blank(),
@@ -143,6 +171,8 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
   
   # Print the plot
   print(gg)
+  ggsave("CNR_angio_Kedge_plot.png", plot = gg, width = 2500, height = 2500, units = "px")
+  
 }
 
 # Example usage
@@ -151,3 +181,7 @@ stats_list <- list(SAA_stats, IRA_stats, IVC_stats, IRVC_stats)
 #stats_list <- list(aguix_SAA_stats, aguix_IRA_stats, aguix_IVC_stats, aguix_IRVC_stats)
 #generateAngioBarsWithError(stats_list, "Signal_HU", "IRA Enhancement", "Time (min)", "Hounsfield Units (HU)",  y_breaks = c(100, 200, 300, 400 ,500, 600))
 generateAngioBarsWithError(stats_list, "Signal_Kedge", "Gd K-edge Angiography", "Time (min)", "[Gd] (mg/mL)", y_breaks = c(1:10))
+generateAngioBarsWithError(stats_list, "CNR_Kedge", "CNR in Color K-edge Images", "Time (min)", "log10(A.U)", y_breaks = c(0:6))
+
+print(max(SAA_stats$averages$CNR_HU
+          ))

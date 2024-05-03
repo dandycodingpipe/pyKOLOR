@@ -92,10 +92,12 @@ pelvis_data <- renalLoad("r_pelvis", group = "s")
 #aguix_medulla_data <- aguix_medulla_data[correct]
 #aguix_pelvis_data <- aguix_pelvis_data[correct]
 
-
-cortex_stats <- vesselStats(cortex_data)
-medulla_stats <- vesselStats(medulla_data)
-pelvis_stats <- vesselStats(pelvis_data)
+adj_cortex <- adjust_and_calculate_CNR(cortex_data)
+adj_medulla <- adjust_and_calculate_CNR(medulla_data)
+adj_pelvis <- adjust_and_calculate_CNR(pelvis_data)
+cortex_stats <- vesselStats(adj_cortex)
+medulla_stats <- vesselStats(adj_medulla)
+pelvis_stats <- vesselStats(adj_pelvis)
 
 # Function to generate a simple plot for one of the renal areas
 plotRenalData <- function(stats, title) {
@@ -115,8 +117,9 @@ plotRenalDataBars <- function(stats_list, title, data, ylab, y_breaks) {
   time_points <- c(0.11, 0.5, 1, 3, 10)  # Adjust if your time points are different
   
   renal_areas <- c("Liver", "Spleen", "Cortex", "Medulla", "Pelvis")  # Specified order here
-  
+  #renal_areas <- c("Cortex", "Medulla", "Pelvis") 
   # Prepare data for plotting
+
   plot_data <- data.frame(
     TimePoint = rep(time_points, times = length(renal_areas)),
     Signal = unlist(lapply(stats_list, function(x) x$averages[[data]])),
@@ -158,12 +161,14 @@ plotRenalDataBars <- function(stats_list, title, data, ylab, y_breaks) {
   
   # Print the plot
   print(gg)
+  ggsave("CNR_organs_Kedge_plot.png", plot = gg, width = 2500, height = 2500, units = "px")
+  
 }
 
 # Ensure your stats_list is correct and includes the ordered data
-stats_list <- list(liver_stats_adjusted, spleen_stats_adjusted, cortex_stats, medulla_stats, pelvis_stats)
-
-plotRenalDataBars(stats_list, "Gd K-edge Biodistribution", "Signal_Kedge", "[Gd] (mg/mL)", y_breaks = c(1:10))
+#stats_list <- list(liver_stats_adjusted, spleen_stats_adjusted, cortex_stats, medulla_stats, pelvis_stats)
+stats_list <- list(liver_stats, spleen_stats, cortex_stats, medulla_stats, pelvis_stats)
+plotRenalDataBars(stats_list, "Gd K-edge Organ Biodistribution", "Signal_Kedge", "[Gd] (mg/mL)", y_breaks = c(1:10))
 plotRenalDataBars(stats_list, "Medulla Enhancement", "Signal_HU", "Hounsfield Units (HU)", y_breaks = c(50,100, 150, 200, 300, 400 ,500, 600))
-#plotRenalDataBars(stats_list, "Gd K-edge Angiography", "CNR_Kedge", "A.U" )
+plotRenalDataBars(stats_list, "CNR Color K-edge Images", "CNR_Kedge", "log10(A.U)",  y_breaks = c(1:14))
 
