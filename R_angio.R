@@ -132,10 +132,11 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
   # Assuming Time Points are consistent across datasets
   time_points <- factor(c(0.11, 0.5, 1, 3, 10)) # Convert to factor for discrete axis
   
-  vessel_names <- c("SAA", "IRA", "IVC", "IRVC")
+  #vessel_names <- c("SAA", "IRA", "IVC", "IRVC")
+  vessel_names <- c("SAA", "IVC")
   #vessel_names <- c("AGuIX", "Dotarem")
-  colors <- c("SAA" = "red", "IRA" = "pink", "IVC" = "blue", "IRVC" = "lightblue","AGuIX" = "lightblue", "Dotarem" = "gold")
-  
+  #colors <- c("SAA" = "red", "IRA" = "pink", "IVC" = "blue", "IRVC" = "lightblue","AGuIX" = "lightblue", "Dotarem" = "gold")
+  colors <- c("SAA" = "red", "IVC" = "blue")
   # Prepare data for plotting
   plot_data <- expand.grid(TimePoint = time_points, Vessel = vessel_names)
   plot_data$Signal <- unlist(lapply(stats_list, function(x) x$averages[[column_name]]))
@@ -167,17 +168,18 @@ generateAngioBarsWithError <- function(stats_list, column_name, title, x_label, 
       axis.text = element_text(size = 30, margin = margin(r = 20), face = "bold" )
     )+
     scale_x_discrete(name = x_label) +
-    geom_vline(xintercept = c(2.5, 4.5), linetype = "dotted", color = "black") # Vertical dotted lines
-  
+    geom_vline(xintercept = c(2.5, 4.5), linetype = "dotted", color = "black") +
+    geom_hline(yintercept = c(0.2), linetype = "dotted", color = "black", size = 1.5)
   # Print the plot
   print(gg)
-  ggsave("CNR_angio_Kedge_plot.png", plot = gg, width = 2500, height = 2500, units = "px")
+  ggsave("CNR_angio_Kedge_plot.png", plot = gg, width = 5000, height = 2500, units = "px")
   
 }
 
 # Example usage
 #stats_list <- list(aguix_IRA_stats, dotarem_IRA_stats)
-stats_list <- list(SAA_stats, IRA_stats, IVC_stats, IRVC_stats)
+#stats_list <- list(SAA_stats, IRA_stats, IVC_stats, IRVC_stats)
+stats_list <- list(SAA_stats, IVC_stats)
 #stats_list <- list(aguix_SAA_stats, aguix_IRA_stats, aguix_IVC_stats, aguix_IRVC_stats)
 #generateAngioBarsWithError(stats_list, "Signal_HU", "IRA Enhancement", "Time (min)", "Hounsfield Units (HU)",  y_breaks = c(100, 200, 300, 400 ,500, 600))
 generateAngioBarsWithError(stats_list, "Signal_Kedge", "Gd K-edge Angiography", "Time (min)", "[Gd] (mg/mL)", y_breaks = c(1:10))

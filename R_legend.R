@@ -2,7 +2,8 @@ library(ggplot2)
 library(grid)
 
 # Define categories and their corresponding unique colors
-categories <- c("Suprarenal abdominal aorta", "Infrarenal aorta", "Inferior vena cava", "Infrarenal vena cava" ,"Cortex","Medulla", "Pelvis", "Liver" ,"Spleen")
+#categories <- c("Suprarenal abdominal aorta", "Infrarenal aorta", "Inferior vena cava", "Infrarenal vena cava" ,"Cortex","Medulla", "Pelvis", "Liver" ,"Spleen")
+categories <- c("Suprarenal abdominal aorta", "Inferior vena cava")
 #categories <- c("Cortex", "Medulla", "Pelvis")
 colors <- c("Suprarenal abdominal aorta" = "red", 
             "Infrarenal aorta" = "pink",  

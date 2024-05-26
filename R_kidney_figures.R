@@ -82,9 +82,9 @@ vesselStats <- function(data) {
 
 
 # Loading renal data and generating descriptive stats
-cortex_data <- renalLoad("r_cortex", group = "s")
-medulla_data <- renalLoad("r_medulla", group = "s")
-pelvis_data <- renalLoad("r_pelvis", group = "s")
+cortex_data <- renalLoad("r_cortex", group = "d")
+medulla_data <- renalLoad("r_medulla", group = "d")
+pelvis_data <- renalLoad("r_pelvis", group = "d")
 
 #aguix ONLY
 #correct <-c(1,3,4,5,6,7)
