@@ -223,6 +223,7 @@ class Viewer:
         self.update(None)
 
     def switch_image_type(self, event):
+        
         self.image_type = 'conventional' if self.image_type == 'kedge' else 'kedge'
         self.slice_slider.valmax = self.get_slice_max()
         self.update(None)
