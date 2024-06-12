@@ -95,7 +95,7 @@ class Sample:
             
             elif(suffix == "Spectral/b_iodine"):
                 iodine = redefine_window(ArrayDicom)
-            
+
         #Instantiate a timepoint class object and append it to the acquisition array
         self.acquisition.append(Timepoint(t, conventional, iodine, kedge))
 
@@ -130,7 +130,7 @@ class Viewer:
     A viewer class that allows the user to visualize both K-edge and Conventional images in one tool. It allows switching between planes and it is initialized in the correct HU units upons initializations but
     be mindful that when adjusting WL and WW this information is lost.
     """
-    def __init__(self, sample, init_slice_index = 50):
+    def __init__(self, sample, init_slice_index = 1):
         self.sample = sample
         self.init_time_point = 0
         self.init_slice_index = init_slice_index
@@ -143,6 +143,7 @@ class Viewer:
         self.fig, self.ax = plt.subplots(figsize=(10, 10))
         plt.subplots_adjust(left=0.25, bottom=0.3, right=0.75)  # Adjust the right margin to make space for the sliders
         self.ax.axis('off')
+        self.ax.set_title(f"Current View: {self.image_type.capitalize()}")
         self.image_display = self.ax.imshow(self.get_image(self.init_time_point, self.init_slice_index), cmap='gray')
 
         # Sliders
@@ -178,9 +179,9 @@ class Viewer:
 
     def get_slice_max(self):
         if self.plan == "axial":
-            return getattr(self.sample.acquisition[0], self.image_type).shape[2] - 1
+            return getattr(self.sample.acquisition[self.time_slider.val], self.image_type).shape[2] - 1
         else:
-            return getattr(self.sample.acquisition[0], self.image_type).shape[1] - 1
+            return getattr(self.sample.acquisition[self.time_slider.val], self.image_type).shape[1] - 1
 
     def update(self, val):
         """
