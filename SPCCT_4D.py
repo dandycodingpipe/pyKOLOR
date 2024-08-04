@@ -16,21 +16,23 @@ class Sample:
     for a given timepoint. 
 
     """
-    def __init__(self, rabbit_id):
-        self.rabbit_id = str(rabbit_id)
+    def __init__(self, animal_id):
+        self.animal_id = str(animal_id)
         self.acquisition = [] #we are in 4D, regardless if we want to look at conventional or Kedge, it will always correspond to a timepoint in acquisition
-        self.fetch_data(rabbit_id)
+        self.fetch_data(animal_id)
 
     def rm_acquisition(self, idx):
         del self.acquisition[idx]
         return self.acquisition
 
-    def fetch_data(self, rabbit_id):
+    def fetch_data(self, animal_id):
         """
         Using just the rabbit ID, this function will automatically find the relevant directory
         and add all timepoints from that directory.
         """
-        base_path = f"D:\copyRaw\Rabbit_AGUIX_" + rabbit_id
+        
+        # move this outside
+        base_path = f"D:\copyRaw\Rabbit_AGUIX_" + animal_id
         directories = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
         directories.sort()
 
@@ -48,6 +50,8 @@ class Sample:
         """
         conventional = None
         kedge = None
+        # move outside 
+        
         suffixes = ["Conventional", r"Spectral/k_gadolinium"]
         time = t
 
