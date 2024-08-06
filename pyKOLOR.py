@@ -19,8 +19,11 @@ class Sample:
     """
     The sample class is pretty self explanatory. It holds all of the data for a single sample (conventional, kedge, iodine) in an acquisition array that separates groups and separates data according to their timepoint.
     """
+    
+    #TODO: remove path outside to yaml file
     def __init__(self, study_path, sample_idx):
         self.sample_id = str(sample_idx)
+        
         self.allData = False #boolean specifying whether you want all spectral data loaded or just k-edge and iodine contrast images
         self.acquisition = [] #acquisition is an array that will hold timepoint class instances
         self.study_path = study_path
@@ -30,6 +33,7 @@ class Sample:
         del self.acquisition[idx]
         return self.acquisition
     
+<<<<<<< HEAD
     def extract_number(self, filename):
         """
         Extracts the first sequence of digits from a given filename.
@@ -38,12 +42,16 @@ class Sample:
         match = re.search(r"\d+", filename)
         return int(match.group()) if match else 0
     
+=======
+    
+    #TODO: remove from this class
+>>>>>>> f1472315891d395ab97823091f5182585c285c24
     def fetch_data(self, study_path, sample_idx):
         """
         This function is the bread and butter of the sample class. It pulls your data according to the desired study and the desired sample.
         """
         base_path = study_path + sample_idx
-        #ex. D:\copyRaw\Rabbit_AGuIX or D:\copyRaw\Phantom_XeGd
+        # ex. D:\copyRaw\Rabbit_AGuIX or D:\copyRaw\Phantom_XeGd
         directories = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
         #directories.sort()
         directories.sort(key=self.extract_number)
@@ -65,12 +73,15 @@ class Sample:
         kedge = None
         iodine = None
         time = t
-        
+    
+        #TODO: move to its own yaml file
         #suffixes = ["Conventional", r"Spectral/b_dlbasephoto", r"Spectral/b_dlbasescatter",  r"Spectral/k_gadolinium",  r"Spectral/b_dlbasenoise", r"Spectral/b_dlbasescatter", r"Spectral/b_iodine",  r"Spectral/b_water", r"Spectral/n_dlbase_noise"]
         suffixes = ["Conventional", r"Spectral/k_gadolinium", r"Spectral/b_iodine"]
 
             # Step 1. creating a list of all necessary file paths for pulling
         
+        
+        # TODO: move path stuff outside where can be
         for suffix in suffixes:
             specific_path = os.path.join(base_path, directories[t], suffix)
 
