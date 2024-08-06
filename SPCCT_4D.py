@@ -7,6 +7,13 @@ from matplotlib.path import Path
 from skimage.morphology import binary_dilation, disk
 import pandas as pd
 import re
+from multiprocessing import Pool, cpu_count
+
+
+from multiprocessing import Pool, cpu_count
+import os
+import pydicom
+import numpy as np
 
 class Sample:
     """
@@ -87,6 +94,7 @@ class Sample:
         #Instantiate a timepoint class object and append it to the acquisition array
         self.acquisition.append(Timepoint(t, conventional, kedge))
     #def import masks from 3d slicer
+
 
 def rescale_image(medical_image, image):
     """
@@ -472,3 +480,89 @@ class VesselAnalyzer:
         self.data = pd.concat([self.data, new_data], ignore_index=True)
         print(self.data)
         self.data.to_csv("dataframe.csv", index = False)
+
+  
+class draw2D:
+    def __init__(self, sample, path=None):
+        self.sample = sample
+        self.path = path
+        self.data = pd.DataFrame(columns=["Mean_HU", "Std_HU", "Median_HU", "Min_HU", "Max_HU", "IQ1_HU", "IQ3_HU", 
+                                          "Mean_Kedge", "Std_Kedge", "Median_Kedge", "Min_Kedge", "Max_Kedge", "IQ1_Kedge", "IQ3_Kedge"])
+        self.masks = []
+        self.mask_overlay = None
+        self.g_key_pressed = False
+
+        self.viewer = Viewer(sample)  # Assuming Viewer is defined elsewhere
+        self.cid_click = self.viewer.fig.canvas.mpl_connect('button_press_event', self.on_mouse_click)
+        self.cid_keypress = self.viewer.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.cid_keyrelease = self.viewer.fig.canvas.mpl_connect('key_release_event', self.on_key_release)
+
+    def on_key_press(self, event):
+        if event.key == 'g':
+            self.g_key_pressed = True
+
+    def on_key_release(self, event):
+        if event.key == 'g':
+            self.g_key_pressed = False
+
+    def on_mouse_click(self, event):
+        if event.inaxes == self.viewer.ax and event.button == 1 and self.g_key_pressed:
+            self.add_circular_roi(event.xdata, event.ydata)
+            plt.draw()
+
+    def add_circular_roi(self, x_center, y_center):
+        radius = 2.5  # For a diameter of 5 pixels
+
+        # Create circular ROI mask
+        nx, ny = self.viewer.image_display.get_array().shape[1], self.viewer.image_display.get_array().shape[0]
+        y, x = np.ogrid[:ny, :nx]
+        circular_mask = (x - x_center) ** 2 + (y - y_center) ** 2 <= radius ** 2
+
+        # Process the mask and calculate statistics
+        self.process_selection(circular_mask, self.sample)
+
+        # Optionally, create an overlay image to show the ROI
+        if self.mask_overlay is not None:
+            self.mask_overlay.remove()
+        self.mask_overlay = self.viewer.ax.imshow(circular_mask, cmap='coolwarm', alpha=0.5)
+        self.viewer.fig.canvas.draw_idle()
+
+    def process_selection(self, circular_mask, sample):
+        # Placeholder for image data, replace with actual image data
+        measurements = []
+        image_data = self.viewer.image_display.get_array()
+
+        # Compute statistics for the circular ROI
+        for i in range(len(sample.acquisition)):
+            conventional = sample.acquisition[i].conventional[:, :, self.viewer.slice_slider.val]
+            kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val] if sample.acquisition[i].kedge is not None else None
+
+            mean_HU = np.mean(conventional[circular_mask])
+            std_HU = np.std(conventional[circular_mask])
+            median_HU = np.median(conventional[circular_mask])
+            min_HU = np.min(conventional[circular_mask])
+            max_HU = np.max(conventional[circular_mask])
+            iq1_HU = np.percentile(conventional[circular_mask], 25)
+            iq3_HU = np.percentile(conventional[circular_mask], 75)
+
+            if kedge is None or (isinstance(kedge, np.ndarray) and np.isnan(kedge).any()):
+                mean_Kedge, std_Kedge, median_Kedge, min_Kedge, max_Kedge, iq1_Kedge, iq3_Kedge = [np.nan] * 7
+            else:
+                mean_Kedge = np.mean(kedge[circular_mask])
+                std_Kedge = np.std(kedge[circular_mask])
+                median_Kedge = np.median(kedge[circular_mask])
+                min_Kedge = np.min(kedge[circular_mask])
+                max_Kedge = np.max(kedge[circular_mask])
+                iq1_Kedge = np.percentile(kedge[circular_mask], 25)
+                iq3_Kedge = np.percentile(kedge[circular_mask], 75)
+
+            # Append metrics to the list
+            measurements.append([mean_HU, std_HU, median_HU, min_HU, max_HU, iq1_HU, iq3_HU,
+                                 mean_Kedge, std_Kedge, median_Kedge, min_Kedge, max_Kedge, iq1_Kedge, iq3_Kedge])
+
+        # Convert measurements list to a DataFrame and append it to self.data
+        new_data = pd.DataFrame(measurements, columns=self.data.columns)
+        self.data = pd.concat([self.data, new_data], ignore_index=True)
+        print(self.data)
+        self.data.to_csv("dataframe.csv", index=False)
+

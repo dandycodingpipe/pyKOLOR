@@ -1,11 +1,12 @@
 
 #pySPCCT is a package that enables quick conventional and spectral data loading, viewing, and analysis
-
+import pandas as pd
 import os
 import pydicom
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, LassoSelector
+import re
 
 class Timepoint:
     def __init__(self, time, conventional, iodine, kedge):
@@ -29,6 +30,14 @@ class Sample:
         del self.acquisition[idx]
         return self.acquisition
     
+    def extract_number(self, filename):
+        """
+        Extracts the first sequence of digits from a given filename.
+        """
+        import re
+        match = re.search(r"\d+", filename)
+        return int(match.group()) if match else 0
+    
     def fetch_data(self, study_path, sample_idx):
         """
         This function is the bread and butter of the sample class. It pulls your data according to the desired study and the desired sample.
@@ -36,7 +45,8 @@ class Sample:
         base_path = study_path + sample_idx
         #ex. D:\copyRaw\Rabbit_AGuIX or D:\copyRaw\Phantom_XeGd
         directories = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
-        directories.sort()
+        #directories.sort()
+        directories.sort(key=self.extract_number)
 
         print(f"Available directories:")
         for i, directory in enumerate(directories):
@@ -259,3 +269,82 @@ class Viewer:
     def display(self):
         """Display or redisplay the viewer figure."""
         self.fig.show()
+
+class VesselAnalyzer:
+        def __init__(self, sample, path=None):
+            self.sample = sample
+            self.path = path
+            self.data = pd.DataFrame(columns=["Signal_HU", "Noise_HU", "Signal_std" , "SNR_HU", "Signal_Kedge", "Noise_Kedge", "Kedge_std", "SNR_Kedge", "Signal_Iodine", "Noise_Iodine", "Iodine_std", "CNR_Iodine"])
+            self.masks = []
+            self.mask_overlay = None
+
+            self.viewer = Viewer(sample)  # Assuming Viewer is defined elsewhere
+            self.cid_click = self.viewer.fig.canvas.mpl_connect('button_press_event', self.on_mouse_click)
+
+        def on_mouse_click(self, event):
+            if event.inaxes == self.viewer.ax and event.button == 1 and event.key == 'g':
+                self.add_circular_roi(event.xdata, event.ydata)
+                plt.draw()
+
+        def add_circular_roi(self, x_center, y_center):
+            radius = 5  # For a diameter of 5 pixels
+            washer_radius = 4.5  # For a washer with an outer diameter of 9 pixels (4.5 + 2.5)
+
+            # Create circular ROI and washer mask
+            nx, ny = self.viewer.image_display.get_array().shape[1], self.viewer.image_display.get_array().shape[0]
+            y, x = np.ogrid[:ny, :nx]
+            circular_mask = (x - x_center) ** 2 + (y - y_center) ** 2 <= radius ** 2
+            washer_mask = (x - x_center) ** 2 + (y - y_center) ** 2 <= washer_radius ** 2
+            washer_mask ^= circular_mask  # Remove the inner circular ROI
+
+            # Process the mask and washer, calculate statistics
+            self.process_selection(circular_mask, washer_mask, self.sample)
+
+            # Optionally, create an overlay image to show the ROI
+            if self.mask_overlay is not None:
+                self.mask_overlay.remove()
+            self.mask_overlay = self.viewer.ax.imshow(circular_mask + washer_mask, cmap='coolwarm', alpha=0.5)
+            self.viewer.fig.canvas.draw_idle()
+
+        def process_selection(self, circular_mask, washer_mask, sample):
+            # Placeholder for image data, replace with actual image data
+            measurements = []
+            image_data = self.viewer.image_display.get_array()
+
+            # Compute statistics for the circular ROI
+            signal_HU = np.mean(image_data[circular_mask])
+            noise_HU = np.mean
+    
+            for i in range(len(sample.acquisition)):
+                conventional = sample.acquisition[i].conventional[:, :, self.viewer.slice_slider.val]
+        
+                # Calculate metrics for conventional and k-edge images
+                signal_HU, noise_HU, signal_Std = np.mean(conventional[circular_mask]), np.mean(conventional[washer_mask]), np.std(conventional[circular_mask])
+                CNR_HU = (signal_HU - noise_HU) / np.std(conventional[washer_mask])
+
+                kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val] if sample.acquisition[i].kedge is not None else None
+                iodine = sample.acquisition[i].iodine[:, :, self.viewer.slice_slider.val] if sample.acquisition[i].iodine is not None else None
+        
+                if kedge is None or (isinstance(kedge, np.ndarray) and np.isnan(kedge).any()):
+                    signal_Kedge, noise_Kedge, CNR_Kedge = np.nan, np.nan, np.nan
+            
+                else:
+                    kedge = sample.acquisition[i].kedge[:, :, self.viewer.slice_slider.val]
+                    signal_Kedge, noise_Kedge, kedge_Std = np.mean(kedge[circular_mask]), np.mean(kedge[washer_mask]), np.std(kedge[circular_mask])
+                    CNR_Kedge = (signal_Kedge - noise_Kedge) / np.std(kedge[washer_mask])
+                
+                if iodine is None or (isinstance(iodine, np.ndarray) and np.isnan(iodine).any()):
+                    signal_Iodine, noise_Iodine, Iodine_std = np.nan, np.nan, np.nan
+            
+                else:
+                    iodine = sample.acquisition[i].iodine[:, :, self.viewer.slice_slider.val]
+                    signal_Iodine, noise_Iodine, Iodine_std= np.mean(iodine[circular_mask]), np.mean(iodine[washer_mask]), np.std(iodine[circular_mask])
+                    CNR_Iodine = (signal_Iodine- noise_Iodine) / np.std(iodine[washer_mask])
+                # Append metrics to the list
+                measurements.append([signal_HU, noise_HU, signal_Std, CNR_HU, signal_Kedge, noise_Kedge, kedge_Std, CNR_Kedge, signal_Iodine, noise_Iodine, Iodine_std, CNR_Iodine])
+    
+            # Convert measurements list to a DataFrame and append it to self.data
+            new_data = pd.DataFrame(measurements, columns=self.data.columns)
+            self.data = pd.concat([self.data, new_data], ignore_index=True)
+            print(self.data)
+            self.data.to_csv("dataframe.csv", index = False)
