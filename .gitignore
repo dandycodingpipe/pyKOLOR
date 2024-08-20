@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 venvStage/
 .Rproj.user
 .Rhistory
 
+=======
+venvStage/
+.Rproj.user
+.Rhistory
+
+resource/
+>>>>>>> 2b78048e44ec8e2995233c6d28a6734d7a3eecb7
