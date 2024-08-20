@@ -35,10 +35,10 @@ class Loader:
             self.add_timepoint(base_path, directories, t)
 
         def add_timepoint(self, base_path, directories, t):
-        """
-        Take all the timepoints that fetch_data() identifies in order to create
-        and append acquisitions to the acquisition array attribute
-        """
+            """
+            Take all the timepoints that fetch_data() identifies in order to create
+            and append acquisitions to the acquisition array attribute
+            """
         conventional = None
         kedge = None
         # move outside 
