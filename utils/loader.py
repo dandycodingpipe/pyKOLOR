@@ -2,6 +2,8 @@
 
 import os
 import re
+import pydicom
+import numpy as np
 
 class Loader:
     
@@ -15,6 +17,23 @@ class Loader:
         """
         match = re.search(r"\d+", filename)
         return int(match.group()) if match else 0
+    
+    def redefine_window(image):
+        """
+        Although not currently amazingly useful, I find it visually helpful to remove negative concentrations from my K-edges and have a framework for altering the intensity window
+        of the conventional CT images.
+        """
+        window_center = image.mean()
+
+        # K-edge specific windowing
+        img_min = 0
+        img_max = window_center + (200 // 2)
+    
+        window_image = image
+        window_image[window_image < img_min] = img_min
+        window_image[window_image > img_max] = img_max
+    
+        return window_image
     
     def fetch_data(self, study_path, sample_idx):
         """
@@ -94,24 +113,10 @@ class Loader:
 
         return rescaled_image
 
-    def redefine_window(image):
-        """
-        Although not currently amazingly useful, I find it visually helpful to remove negative concentrations from my K-edges and have a framework for altering the intensity window
-        of the conventional CT images.
-        """
-        window_center = image.mean()
 
-        # K-edge specific windowing
-        img_min = 0
-        img_max = window_center + (200 // 2)
-    
-        window_image = image
-        window_image[window_image < img_min] = img_min
-        window_image[window_image > img_max] = img_max
-    
-        return window_image
 
     class Timepoint:
+    #
         def __init__(self, time, conventional, kedge):
             self.time = time #identifier
             self.conventional = conventional # 3D array of conventional images

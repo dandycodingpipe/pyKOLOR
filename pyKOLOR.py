@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 
 #pySPCCT is a package that enables quick conventional and spectral data loading, viewing, and analysis
 import pandas as pd
@@ -34,7 +34,7 @@ class Sample:
         del self.acquisition[idx]
         return self.acquisition
     
-<<<<<<< HEAD
+
     def extract_number(self, filename):
         """
         Extracts the first sequence of digits from a given filename.
@@ -359,7 +359,7 @@ class VesselAnalyzer:
             new_data = pd.DataFrame(measurements, columns=self.data.columns)
             self.data = pd.concat([self.data, new_data], ignore_index=True)
             print(self.data)
-=======
+
 
 #pySPCCT is a package that enables quick conventional and spectral data loading, viewing, and analysis
 import pandas as pd

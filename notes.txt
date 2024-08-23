@@ -1,0 +1,6 @@
+## the time point is coupled with images abstractly 
+
+## can we make a DTO object for them I think this might be a good exercise for you
+
+## here is an example
+
