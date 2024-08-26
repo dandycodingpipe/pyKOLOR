@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-from pySPCCT import Sample, Viewer
+from utils import loader
 
-base_path = "D:\\copyRaw\\Phantom_XeGd_"
-Viewer(Sample(base_path, "3"))
-=======
-from pySPCCT import Sample, Viewer
+#raw_image = loader.Loader("c:\\Users\\Chris\\OneDrive\\Desktop\\sample_data")
 
-base_path = "D:\\copyRaw\\Phantom_XeGd_"
-Viewer(Sample(base_path, "3"))
->>>>>>> 2b78048e44ec8e2995233c6d28a6734d7a3eecb7
+sample = loader.Loader()
