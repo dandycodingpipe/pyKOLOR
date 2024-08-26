@@ -23,6 +23,9 @@ class Loader:
 
         self.volumedirectory_contents = {} # Dictionary to store contents of volume directories
         self.volume_directories()
+
+        self.dicom_files = {}  # Dictionary to store DICOM files for each volume
+        self.volume_maps()
     
     def select_directory(self):
         # Hide the main Tkinter window
@@ -110,17 +113,66 @@ class Loader:
             self.volumedirectory_contents[subdir] = volume_contents
             
             # Print the contents for immediate feedback
-            print(f"Volume directories in '{subdir}':")
-            for volume_dir, contents in volume_contents.items():
-                print(f"  Contents of '{volume_dir}':")
-                print("\n".join(contents))
-                print()  # Blank line for better readability
+            #print(f"Volume directories in '{subdir}':")
+            #for volume_dir, contents in volume_contents.items():
+            #    print(f"  Contents of '{volume_dir}':")
+            #    print("\n".join(contents))
+            #    print()  # Blank line for better readability
 
     def volume_maps(self):
         """
-        This is the end goal of the loader class is to identify the dicom IDs present in every volume class of every series in a study.
+        This method identifies the DICOM files present in every folder of each volume directory in the study.
+        It organizes them into a nested dictionary structure.
         """
-        
+        for subdir, volumes in self.volumedirectory_contents.items():
+            print(f"Processing subdir: {subdir}")
+            subdir_path = os.path.join(self.base_path, subdir)
+            
+            # Initialize a dictionary to store DICOM files categorized by their volume names
+            dicom_files_in_subdir = {}
+
+            for volume_name, volume_items in volumes.items():
+                print(f"  Processing volume: {volume_name}")
+
+                # Initialize a dictionary to store DICOM files for each directory under the current volume
+                dicom_files_in_volume = {}
+
+                # Iterate through each item in the volume (directories like 'dcm', 'b_dlbasephoto', etc.)
+                for item in volume_items:
+                    # Extract the directory name from the item string
+                    item_name = item.split(": ")[-1].strip()
+                    item_path = os.path.join(subdir_path, volume_name, item_name)
+
+                    print(f"    Checking directory: {item_name}")
+
+                    dicom_files = []
+
+                    if os.path.isdir(item_path):
+                        # Iterate over all subfolders in the item_path
+                        for root, dirs, files in os.walk(item_path):
+                            for file in files:
+                                if file.lower().endswith('.dcm'):  # Check if the file is a DICOM file
+                                    dicom_files.append(os.path.join(root, file))
+
+                    # Store the DICOM files for this specific directory in the volume
+                    dicom_files_in_volume[item_name] = dicom_files
+
+                # Store all DICOM files for each volume (like 'Conventional' or 'Spectral') in the subdirectory
+                dicom_files_in_subdir[volume_name] = dicom_files_in_volume
+
+            # Store the organized DICOM files for each subdirectory
+            self.dicom_files[subdir] = dicom_files_in_subdir
+
+            # Print the DICOM files for immediate feedback
+            print(f"DICOM files in '{subdir}':")
+            for volume_dir, volume_contents in dicom_files_in_subdir.items():
+                print(f"  Volume: {volume_dir}")
+                for dir_name, files in volume_contents.items():
+                    print(f"    Directory '{dir_name}': {len(files)} DICOM files found")
+                print()  # Blank line for better readability
+
+
+
 
     def get_subdirectory_contents(self):
         """
@@ -133,3 +185,6 @@ class Loader:
         Returns the stored contents of all volume directories.
         """
         return self.volumedirectory_contents
+
+    def get_dicom_files(self):
+        return self.dicom_files
