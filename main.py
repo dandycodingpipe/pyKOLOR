@@ -12,6 +12,6 @@ subdir_in_volume = "dcm"
 dicom_files_list = sample.dicom_files.get(subdirectory_name, {}).get(volume_name, {}).get(subdir_in_volume, [])
 
 # Print the DICOM files
-print(f"DICOM files in '{subdirectory_name}' -> '{volume_name}' -> '{subdir_in_volume}':")
-for dicom_file in dicom_files_list:
-    print(dicom_file)
+#print(f"DICOM files in '{subdirectory_name}' -> '{volume_name}' -> '{subdir_in_volume}':")
+#for dicom_file in dicom_files_list:
+#    print(dicom_file)
