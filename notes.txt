@@ -1,13 +1,17 @@
 ######## OVERALL ########
-
-1. Storage
+1. Loader
+  - directory of images into a dictionary
+  - goes through image directories and stores the subfolder
+  - function to load certain images
+  
+  
+  
+2. Storage
     - Images 
     - names
     - size of the file
 
 
-2. LOADER
-    - Load all images from storage 
 
 
 
@@ -21,7 +25,8 @@
 
 
 4. GUI 
-    - 
+    -  make gui ambiguous to images 
+    
 
 
 ######## OVERALL ########

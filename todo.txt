@@ -4,11 +4,11 @@
 
 ----- Chris ----- 
 
-- Finish touch up Loader
+
 - Robust Images classes for segreated by possible image analysis
     -  3 different types of image (lung, heart, etc) 
     - base class 
-- delete files 
+- delete files not needed
 - DTO class 
 
 
@@ -24,4 +24,4 @@
 - FLASK API for microservice
     - can talk more about this later
 
-- Elastic database options
+- 
