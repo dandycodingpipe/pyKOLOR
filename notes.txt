@@ -3,18 +3,13 @@
   - directory of images into a dictionary
   - goes through image directories and stores the subfolder
   - function to load certain images
-
-
-
-  
   
   
 2. Storage
     - Images 
     - names
     - size of the file
-
-
+    - maybe postgress sql
 
 
 
@@ -47,9 +42,14 @@
 ## Loader is Crazy can we make it so if it doesn't see it in the first directory it stops looking?
 
 ## Adding database for storing images 
-##   - on start up the loader can look in a single directory if there is a new folder then iterate through the folder add that to the database
-     - is there way we can have a robust way to get most angles and store those images lmk what you think
-     
+##   - on start up the loader can look in a single directory if there is a new
+         folder then iterate through the folder add that to the database
+
+     - is there way we can load images in a more robust way ie get all angles 
+            with all time stamps aand store those images in the db. lmk what 
+            you think i think this would be a cool way to make it easy to make 
+            some of 'gifs' we saw in that gui we looked up
+
 
 ######## THOUGHTS ########
 
