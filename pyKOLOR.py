@@ -5,6 +5,13 @@ from PIL import Image
 from transformers import AutoProcessor, AutoModel
 import torch
 
+
+##############################################################
+#
+#               
+#               This does not work :/              
+##############################################################
+
 # Initialize the Loader
 sample = Loader()
 
