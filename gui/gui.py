@@ -1,3 +1,6 @@
+import matplotlib as plt
+from matplotlib.widgets import Slider, Button
+import numpy as np
 
 class Gui:
     """

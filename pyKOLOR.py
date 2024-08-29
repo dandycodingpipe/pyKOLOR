@@ -1,8 +1,8 @@
-from utils import loader
+from util.loader import Loader
 
 #raw_image = loader.Loader("c:\\Users\\Chris\\OneDrive\\Desktop\\sample_data")
 
-sample = loader.Loader()
+sample = Loader()
 # Replace these with your actual subdirectory, volume, and sub-directory names
 subdirectory_name = "2021_01_25.4533.300.2024_03_17.AGUIX_Rabbit_26608_e00000"
 volume_name = "Conventional"
