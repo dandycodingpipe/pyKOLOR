@@ -3,6 +3,9 @@
   - directory of images into a dictionary
   - goes through image directories and stores the subfolder
   - function to load certain images
+
+
+
   
   
   
@@ -40,6 +43,13 @@
 ## Elastic database
 
 ## image compression
+
+## Loader is Crazy can we make it so if it doesn't see it in the first directory it stops looking?
+
+## Adding database for storing images 
+##   - on start up the loader can look in a single directory if there is a new folder then iterate through the folder add that to the database
+     - is there way we can have a robust way to get most angles and store those images lmk what you think
+     
 
 ######## THOUGHTS ########
 

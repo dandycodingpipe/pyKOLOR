@@ -5,6 +5,7 @@ import numpy as np
 from pgvector.psycopg2 import register_vector
 
 class PgVectorDB:
+    
     def __init__(self, dbname, host='localhost', port='5432'):
         # Use 'postgres' as user and 'postgress' as the password
         self.conn = psycopg2.connect(dbname=dbname, user='postgres', password='postgress', host=host, port=port)
