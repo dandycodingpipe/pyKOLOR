@@ -1,8 +1,10 @@
 import os
+import tkinter as tk
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
+from tkinter import Toplevel, Checkbutton, Button, IntVar, Label, Scrollbar, Canvas
 
-class Loader:
+class loading:
     
     """
     The loader class establishes a path containing a study directory (sets of images pertaining to an animal or phantom) that the user wishes to process. It abstracts through the directory until it locates the paths of relevant 3D images.
@@ -13,19 +15,20 @@ class Loader:
         self.base_path = base_path if base_path else self.select_directory()
         print(f"Base path: {self.base_path}")
         
-        self.directories = [d for d in os.listdir(self.base_path) if os.path.isdir(os.path.join(self.base_path, d))]
-        self.directories.sort
-        print(f"Time series in directory: {self.directories}")
+        self.CTimages = [d for d in os.listdir(self.base_path) if os.path.isdir(os.path.join(self.base_path, d))]
+        self.CTimages.sort
+        print(f"Time series in directory: {self.CTimages}")
 
 
-        self.subdirectory_contents = {}  # Dictionary to store contents of each subdirectory
-        self.image_class_subdirectories()
+        self.time_series = {}  # Dictionary of first order abstraction in Philips study folder format are multiple acquisitions of the patient/animal
+        self.path_to_time_series() # Function that retrieves all time-series directories
 
-        self.volumedirectory_contents = {} # Dictionary to store contents of volume directories
-        self.volume_directories()
+        self.material_decomposition = {} # Dictionary of second order abstraction where integrated (conventional) or spectral sampling of the source is used 
+        self.path_to_material_decomposition() # Function that retrieves both material decomposition directories
 
-        self.dicom_files = {}  # Dictionary to store DICOM files for each volume
-        self.volume_maps()
+        self.dicom_files = {}  # Dictionary to store 3rd and 4th order abstraction with the 3rd order being the directory map_decomps are stored and 4th being the dicom files
+        self.path_to_map_decomps() # Function that retrieves dicom file paths
+        self.display_selection_gui()
     
     def select_directory(self):
         # Hide the main Tkinter window
@@ -39,12 +42,11 @@ class Loader:
         return selected_directory
 
 
-    def image_class_subdirectories(self):
+    def path_to_time_series(self):
         """
-        In each study directory there are image class subdirectories: conventional, spectral, and SBI. 
-        These subdirectories contain 3D map files. SBI files are discarded in this step.
+        This builds the path to the directory that stores image reconstruction folders. 1st order of abstraction in the Philips SPCCT prototype folder.
         """
-        for subdir in self.directories:
+        for subdir in self.CTimages:
             subdir_path = os.path.join(self.base_path, subdir)
             # Initialize an empty list to store contents of the current subdirectory
             contents = []
@@ -57,7 +59,7 @@ class Loader:
                         item_path = os.path.join(subdir_path, item)
                         if os.path.isdir(item_path):
                             if "SBI" not in item:  # Skip subdirectories named "SBI"
-                                contents.append(f"  Directory: {item}")
+                                contents.append(f"  Reconstruction: {item}")
                         else:
                             contents.append(f"  File: {item}")
                 else:
@@ -66,84 +68,86 @@ class Loader:
                 contents.append(f"  Error accessing {subdir_path}: {e}")
             
             # Store the contents in the dictionary
-            self.subdirectory_contents[subdir] = contents
+            self.time_series[subdir] = contents
             
-            # Print the contents for immediate feedback
-            #print(f"Contents of '{subdir}':")
+            #Print the contents for immediate feedback
+            #print(f"Contents of time-series: '{subdir}':")
             #print("\n".join(contents))
             #print()  # Blank line for better readability
 
-    def volume_directories(self):
+    def path_to_material_decomposition(self):
         """
-        For each image class directory, list the contents of the volume subdirectories.
+        This builds upon the path set by path_to_time_series(). 2nd level of abstraction in Philips SPCCT prototype folder.
         """
-        for subdir, contents in self.subdirectory_contents.items():
+        for subdir, contents in self.time_series.items():
             subdir_path = os.path.join(self.base_path, subdir)
             
             # Initialize an empty dictionary to store the contents of volume directories
-            volume_contents = {}
+            reconstruction = {}
             
             for item in contents:
                 item_name = item.split(': ')[-1]
-                item_path = os.path.join(subdir_path, item_name)
+                item_path = os.path.join(subdir_path, item_name) #Add to the base path to construct the direct path to the dicom file
                 
                 if os.path.isdir(item_path):
                     # Initialize a list to store the contents of the volume directory
-                    volume_dir_contents = []
+                    material_decomposition_contents = []
                     
                     try:
                         # List all items in the current volume directory
-                        volume_items = os.listdir(item_path)
-                        if volume_items:  # Check if there are items to display
-                            for volume_item in volume_items:
-                                volume_item_path = os.path.join(item_path, volume_item)
-                                if os.path.isdir(volume_item_path):
-                                    volume_dir_contents.append(f"    Directory: {volume_item}")
+                        items = os.listdir(item_path)
+                        if items:  # Check if there are items to display
+                            for material_decomposition_item in items:
+                                material_decomposition_path = os.path.join(item_path, material_decomposition_item)
+                                if os.path.isdir(material_decomposition_path):
+                                    material_decomposition_contents.append(f"    Material decomposition: {material_decomposition_item}")
                                 else:
-                                    volume_dir_contents.append(f"    File: {volume_item}")
+                                    material_decomposition_contents.append(f"    File: {material_decomposition_item}")
                         else:
-                            volume_dir_contents.append("    (Empty)")
+                            material_decomposition_contents.append("    (Empty)")
                     except Exception as e:
-                        volume_dir_contents.append(f"    Error accessing {item_path}: {e}")
+                        material_decomposition_contents.append(f"    Error accessing {item_path}: {e}")
                     
                     # Store the contents in the dictionary
-                    volume_contents[item_name] = volume_dir_contents
+                    reconstruction[item_name] = material_decomposition_contents
             
             # Store the volume contents in the main dictionary
-            self.volumedirectory_contents[subdir] = volume_contents
+            self.material_decomposition[subdir] = reconstruction
             
             # Print the contents for immediate feedback
-            #print(f"Volume directories in '{subdir}':")
-            #for volume_dir, contents in volume_contents.items():
-            #    print(f"  Contents of '{volume_dir}':")
+            #print(f"Time-series: '{subdir}':")
+            #for material_decomposition_contents, contents in reconstruction.items():
+            #    print(f"  Contents of '{material_decomposition_contents}':")
             #    print("\n".join(contents))
             #    print()  # Blank line for better readability
 
-    def volume_maps(self):
+    def path_to_map_decomps(self):
         """
-        This method identifies the DICOM files present in every folder of each volume directory in the study.
-        It organizes them into a nested dictionary structure.
+        This method completes the path to all dicom files in a directory and stores them in a dictionary. This is the final 3rd and 4th levels of abstraction in  the Philips SPCCT prototype output folder.
         """
-        for subdir, volumes in self.volumedirectory_contents.items():
-            print(f"Processing subdir: {subdir}")
+        for subdir, map_decomps in self.material_decomposition.items():
+            #print(f"Processing time-series: {subdir}")
             subdir_path = os.path.join(self.base_path, subdir)
             
-            # Initialize a dictionary to store DICOM files categorized by their volume names
+            # Initialize a dictionary to store folders storing dicom files and the entire 3D stack itself.
             dicom_files_in_subdir = {}
+            #print(subdir)
+            #print(map_decomps)
 
-            for volume_name, volume_items in volumes.items():
-                print(f"  Processing volume: {volume_name}")
+            for dicom_stack, items in map_decomps.items():
 
-                # Initialize a dictionary to store DICOM files for each directory under the current volume
-                dicom_files_in_volume = {}
+                #print(f"  Processing material decompositions: {dicom_stack}")
+
+                # Initialize a dictionary to store the 3D stack
+                threeD_stack = {}
 
                 # Iterate through each item in the volume (directories like 'dcm', 'b_dlbasephoto', etc.)
-                for item in volume_items:
-                    # Extract the directory name from the item string
+                for item in items:
+                    # Use previous function dictionary to rebuild path
                     item_name = item.split(": ")[-1].strip()
-                    item_path = os.path.join(subdir_path, volume_name, item_name)
+                    item_path = os.path.join(subdir_path, dicom_stack, item_name)
 
-                    print(f"    Checking directory: {item_name}")
+                    #print(f"    Checking material decomposition: {item_name}")
 
                     dicom_files = []
 
@@ -155,36 +159,118 @@ class Loader:
                                     dicom_files.append(os.path.join(root, file))
 
                     # Store the DICOM files for this specific directory in the volume
-                    dicom_files_in_volume[item_name] = dicom_files
+                    threeD_stack[item_name] = dicom_files
 
                 # Store all DICOM files for each volume (like 'Conventional' or 'Spectral') in the subdirectory
-                dicom_files_in_subdir[volume_name] = dicom_files_in_volume
+                dicom_files_in_subdir[dicom_stack] = threeD_stack
 
             # Store the organized DICOM files for each subdirectory
             self.dicom_files[subdir] = dicom_files_in_subdir
 
             # Print the DICOM files for immediate feedback
-            print(f"DICOM files in '{subdir}':")
-            for volume_dir, volume_contents in dicom_files_in_subdir.items():
-                print(f"  Volume: {volume_dir}")
-                for dir_name, files in volume_contents.items():
-                    print(f"    Directory '{dir_name}': {len(files)} DICOM files found")
-                print()  # Blank line for better readability
+            #print(f"DICOM files in '{subdir}':")
+            #for threeD_stack, contents in dicom_files_in_subdir.items():
+            #    print(f"  Material decomposition: {threeD_stack}")
+            #    for dir_name, files in contents.items():
+            #       print(f"    3D map '{dir_name}': {len(files)} DICOM files found")
+            #    print()  # Blank line for better readability
 
 
 
-
-    def get_subdirectory_contents(self):
+    def get_time_series(self):
         """
         Returns the stored contents of all subdirectories.
         """
-        return self.subdirectory_contents
+        return self.time_series
 
-    def get_volumedirectory_contents(self):
+    def get_material_decomposition(self):
         """
         Returns the stored contents of all volume directories.
         """
-        return self.volumedirectory_contents
+        return self.material_decomposition
 
     def get_dicom_files(self):
         return self.dicom_files
+    
+    def display_selection_gui(self):
+        # Create a new Tkinter window
+        root = tk.Toplevel()
+        root.title("Select desired time series and material decompositions:")
+
+        # Create a Canvas widget for scrolling
+        canvas = Canvas(root)
+        canvas.grid(row=0, column=0, sticky='nsew')
+
+        # Create a Frame inside the Canvas to contain all other widgets
+        scrollable_frame = tk.Frame(canvas)
+        
+        # Create a scrollbar and link it to the Canvas
+        scrollbar = Scrollbar(root, orient='vertical', command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+        
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Create a window inside the Canvas to hold the scrollable Frame
+        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
+
+        def on_frame_configure(event):
+            # Update the scrollregion of the Canvas to encompass the new size of the scrollable Frame
+            canvas.configure(scrollregion=canvas.bbox('all'))
+
+        scrollable_frame.bind("<Configure>", on_frame_configure)
+
+        # Dictionary to store checkbox states for directory names
+        dir_checkbox_vars = {}
+
+        def process_selection():
+            # Create a dictionary to store selected directories
+            selected_dirs = {}
+
+            # Loop through the checkboxes and find selected directories
+            for time_series, map_decomps in self.dicom_files.items():
+                selected_dirs[time_series] = {}
+                for reconstruction, directories in map_decomps.items():
+                    selected_dirs[time_series][reconstruction] = {}
+                    for map_decomp, files in directories.items():
+                        if dir_checkbox_vars[map_decomp].get() == 1:
+                            selected_dirs[time_series][reconstruction][map_decomp] = files
+            
+            # Update the dicom_files dictionary to only include selected directories
+            self.dicom_files = selected_dirs
+
+            # Close the GUI window
+            root.destroy()
+            print("Selection complete.")
+            print(f"Selected directories: {selected_dirs}")
+
+        # Add a label for the window
+        Label(scrollable_frame, text="Select Directories:", font=('Arial', 12, 'bold')).grid(row=0, column=0, sticky='w')
+
+        row_index = 1  # Initialize row index for grid placement
+
+        # Iterate through dicom_files to create headers and checkboxes
+        for ts, map_decomps in self.dicom_files.items():
+            # Add a label for the current time series (header)
+            ts_label = Label(scrollable_frame, text=f"Time Series: {ts}", font=('Arial', 10, 'bold'))
+            ts_label.grid(row=row_index, column=0, sticky='w', pady=(10, 0))
+            row_index += 1
+
+            for reconstruction, directories in map_decomps.items():
+                for dir_name, files in directories.items():
+                    # Create a checkbox for each directory
+                    dir_var = IntVar()
+                    dir_checkbox = Checkbutton(scrollable_frame, text=f"  Material decomposition: {dir_name}", variable=dir_var)
+                    dir_checkbox.grid(row=row_index, column=0, sticky='w', padx=20)
+                    dir_checkbox_vars[dir_name] = dir_var
+                    row_index += 1  # Increment row index for the next checkbox
+
+        # Confirm button
+        confirm_button = Button(scrollable_frame, text="Confirm Selection", command=process_selection)
+        confirm_button.grid(row=row_index, column=0, columnspan=2, pady=(10, 0))
+
+        # Adjust column and row weights to make sure the Canvas expands with window size
+        root.grid_rowconfigure(0, weight=1)
+        root.grid_columnconfigure(0, weight=1)
+
+        root.mainloop()
+        print("outside loop")

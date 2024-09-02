@@ -5,7 +5,7 @@ class Sample:
     The Sample class loads Philips Spectral data and converts the dicom files as numpy 5D arrays: 
         1. Define path and access CT examination study directory 
         2. Pull directory and store studies in a time series (time series dimension)
-        3. Extract spectral dicoms and store them in a timepoint class (3d + image decomposition maps are 4 additional dimensions)
+        3. Extract spectral map_decomps and store them in a timepoint class (3d + image decomposition maps are 4 additional dimensions)
     """
 
 class Viewer:

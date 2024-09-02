@@ -98,7 +98,7 @@ class Sample:
             
             print(f"{suffix} file {t+1} total DICOM files found: {len(DCMfiles)}")
 
-            # Step 2. loading dicoms 
+            # Step 2. loading map_decomps 
             images = [pydicom.dcmread(f) for f in DCMfiles]
             images.sort(key = lambda x: float(x.ImagePositionPatient[2]))
 
@@ -454,7 +454,7 @@ class Sample:
             
             print(f"{suffix} file {t+1} total DICOM files found: {len(DCMfiles)}")
 
-            # Step 2. loading dicoms 
+            # Step 2. loading map_decomps 
             images = [pydicom.dcmread(f) for f in DCMfiles]
             images.sort(key = lambda x: float(x.ImagePositionPatient[2]))
 
