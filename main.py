@@ -1,4 +1,2 @@
-from utils import loader
-
-study = loader.loading()
-
+from utils/loader import loading
+loading()
